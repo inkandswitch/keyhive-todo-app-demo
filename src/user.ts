@@ -1,5 +1,5 @@
 import { AutomergeUrl, PeerId } from "@automerge/react";
-import { Signer, Individual, Identifier, Keyhive } from "@keyhive/wasm";
+import { Signer, Individual, Identifier, Keyhive } from "@keyhive/keyhive";
 import { StateDB } from "./db";
 import { peerIdFromSigner } from "@automerge/automerge-keyhive-network-adapter";
 import { SyncServer } from "./server";
@@ -44,7 +44,6 @@ export async function loadOrGenerateActive(
   const maybeActive = await db.load();
   if (maybeActive) {
     active = maybeActive;
-    // FIXME: This is a hack until we can properly rehydrate Signer
     const signer = await Signer.webCryptoSigner(active.keyPair);
     active.signer = signer;
   } else {

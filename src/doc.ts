@@ -6,7 +6,7 @@ import {
   Identifier,
   Individual,
   Keyhive,
-} from "@keyhive/wasm";
+} from "@keyhive/keyhive";
 import { AccessString } from "./user";
 import { IdentitiesDocument } from "./identities";
 
@@ -28,7 +28,7 @@ export async function generateDoc<T>(
   const keyhiveDoc = await kh.generateDocument([g.toPeer()], changeRef, []);
   const docHandle = docBuilder();
   await storeKeyhive(kh);
-  
+
   changeIdentitiesDoc((d: IdentitiesDocument) => {
     d.docIds[docHandle.url as string] = keyhiveDoc.doc_id.toBytes();
     d.docGroups[docHandle.url as string] = g.id.toBytes();
@@ -52,7 +52,7 @@ export async function generateDoc<T>(
       );
     }
   });
-  
+
   return docHandle;
 }
 

@@ -7,7 +7,7 @@ import { AccessString } from "../user";
 import { generateDoc } from "../doc";
 import { SyncServer } from "../server";
 import { IdentitiesDocument } from "../identities";
-import { Individual, Keyhive } from "@keyhive/wasm";
+import { Individual, Keyhive } from "@keyhive/keyhive";
 
 interface DocumentListProps {
   docUrl: AutomergeUrl;

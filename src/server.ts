@@ -1,5 +1,5 @@
 import { PeerId } from "@automerge/automerge-repo/slim";
-import { ContactCard, Individual, Keyhive } from "@keyhive/wasm";
+import { ContactCard, Individual, Keyhive } from "@keyhive/keyhive";
 import { IdentitiesDocument } from "./identities";
 import { uint8ArrayToHex } from "./doc";
 

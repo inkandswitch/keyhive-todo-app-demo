@@ -16,15 +16,11 @@ import { KeyhiveNetworkAdapter } from "@automerge/automerge-keyhive-network-adap
 import { Active, loadOrGenerateActive } from "./user.ts";
 import { StateDB } from "./db.ts";
 import { IdentitiesDocument } from "./identities.ts";
-import { Individual, setPanicHook } from "@keyhive/wasm";
-
-import init, { Keyhive } from '@keyhive/wasm'
+import { Individual, Keyhive } from "@keyhive/keyhive";
 import { addServerToIdentitiesDoc, syncServerFromContactCard } from "./server.ts";
 import { KeyhiveArchiveBytes, loadOrGenerateKeyhive } from "./keyhive.ts";
 
-// Initialize Keyhive and set panic hook for debugging
-await init();
-setPanicHook();
+// setPanicHook();
 
 const db: StateDB<Active> = new StateDB(`${STATE_PREFIX}-keyhive-demo`)
 const active = await loadOrGenerateActive(db)

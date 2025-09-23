@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { IdentitiesDocument } from '../identities';
 import { AutomergeUrl } from '@automerge/react';
-import { Access, ContactCard, DocumentId, Keyhive } from '@keyhive/wasm';
+import { Access, ContactCard, DocumentId, Keyhive } from '@keyhive/keyhive';
 import { accessListForDoc, addMemberToDoc, revokeMemberFromDoc, DocAccessList, uint8ArrayToHex } from '../doc';
 import { Active } from '../user';
 

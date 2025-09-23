@@ -8,7 +8,7 @@ import { UserModal } from "./UserModal";
 import { useState, useEffect, useCallback } from "react";
 import { AppData } from "../user";
 import { IdentitiesDocument } from "../identities";
-import { Archive, Keyhive } from "@keyhive/wasm";
+import { Archive, Keyhive } from "@keyhive/keyhive";
 
 type AppProps = {
   docUrl: AutomergeUrl;

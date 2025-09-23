@@ -3,7 +3,7 @@ import { ShareModal } from "./ShareModal";
 import { useState, useMemo } from "react";
 import { IdentitiesDocument } from "../identities";
 import { Active } from "../user";
-import { DocumentId, Keyhive } from "@keyhive/wasm";
+import { DocumentId, Keyhive } from "@keyhive/keyhive";
 
 export interface Task {
   title: string;
