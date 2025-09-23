@@ -76,7 +76,7 @@ export function ShareModal({ isOpen, docUrl, identitiesDoc, keyhive, storeKeyhiv
         const contactCard = ContactCard.fromJson(contactCardString);
         const access = Access.tryFromString(selectedAccessLevel.toLowerCase())
         if (!access) {
-          console.log("Failed to derive Access");
+          console.error("Failed to derive Access");
           return;
         }
         const individual = keyhive.receiveContactCard(contactCard)
@@ -111,7 +111,7 @@ export function ShareModal({ isOpen, docUrl, identitiesDoc, keyhive, storeKeyhiv
     docAccessList = accessListForDoc(keyhive, khDocId)
   } else {
     // FIXME
-    console.log("NO DOC!")
+    console.error("NO DOC!")
   }
 
   return (

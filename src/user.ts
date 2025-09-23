@@ -1,7 +1,7 @@
 import { AutomergeUrl, PeerId } from "@automerge/react";
 import { Signer, Individual, Identifier, Keyhive } from "@keyhive/keyhive";
 import { StateDB } from "./db";
-import { peerIdFromSigner } from "@automerge/automerge-keyhive-network-adapter";
+import { KeyhiveNetworkAdapter, peerIdFromSigner } from "@automerge/automerge-keyhive-network-adapter";
 import { SyncServer } from "./server";
 
 export type User = {
@@ -32,6 +32,7 @@ export type AppData = {
   individual: Individual;
   active: Active;
   keyhive: Keyhive;
+  keyhiveNetworkAdapter: KeyhiveNetworkAdapter;
   db: StateDB<Active>;
   syncServer: SyncServer;
 };

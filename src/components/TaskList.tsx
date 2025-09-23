@@ -48,7 +48,7 @@ export const TaskList = ({ docUrl, identitiesDoc, keyhive, storeKeyhive, active,
 
     const docIdBytes = identitiesDoc.docIds[docUrl]
     if (!docIdBytes) {
-      console.log(`KeyhiveDocument not found in docMap for URL: ${docUrl}`);
+      console.error(`KeyhiveDocument not found in docMap for URL: ${docUrl}`);
       return false;
     }
 

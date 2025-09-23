@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@automerge/automerge-keyhive-network-adapter':
-        specifier: ^0.0.0-alpha.3
-        version: 0.0.0-alpha.3
+        specifier: ^0.0.0-alpha.6
+        version: 0.0.0-alpha.6
       '@automerge/automerge-repo':
         specifier: ^2.2.0
         version: 2.2.0
@@ -92,8 +92,8 @@ packages:
     resolution: {integrity: sha512-30iZtAPgz+LTIYoeivqYo853f02jBYSd5uGnGpkFV0M3xOt9aN73erkgYAmZU43x4VfqcnLxW9Kpg3R5LC4YYw==}
     engines: {node: '>=6.0.0'}
 
-  '@automerge/automerge-keyhive-network-adapter@0.0.0-alpha.3':
-    resolution: {integrity: sha512-OuQvvHa5PDUFHKzk6lb2h2ITmye5cImIrLo2fQH/znwRCHdzsorrl7RU3EjmYjgwb/PE1aLMKKvDIzAUOs7jhw==}
+  '@automerge/automerge-keyhive-network-adapter@0.0.0-alpha.6':
+    resolution: {integrity: sha512-Vjouii5g8tgyuWOEeYbp4ACn5iJyB1Ict8DSl0+B/B37Zl6XWgg/4452l23y5RE10QgbQZZ9BuaKR3uxxlEq8Q==}
 
   '@automerge/automerge-repo-network-broadcastchannel@2.2.0':
     resolution: {integrity: sha512-HXVEb2ehQT28iY4ku/7cRZ3GIpKcEsebvDePBX2z/VjUfamVzUPcquS/772VnjQC/4IMWnbx4YcRuPNi5CaYbQ==}
@@ -1669,7 +1669,7 @@ snapshots:
       '@jridgewell/gen-mapping': 0.3.13
       '@jridgewell/trace-mapping': 0.3.30
 
-  '@automerge/automerge-keyhive-network-adapter@0.0.0-alpha.3':
+  '@automerge/automerge-keyhive-network-adapter@0.0.0-alpha.6':
     dependencies:
       '@automerge/automerge-repo': 2.2.0
       '@automerge/automerge-repo-network-websocket': 2.2.0

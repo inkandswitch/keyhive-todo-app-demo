@@ -39,7 +39,7 @@ export async function generateDoc<T>(
     for (const [individual, cap] of membersToAdd) {
       const access = Access.tryFromString(cap);
       if (!access) {
-        console.log("Failed to derive Access");
+        console.error("Failed to derive Access");
         continue;
       }
       await addMemberToDoc(
@@ -67,17 +67,17 @@ export async function addMemberToDoc(
   const agent = member.toAgent();
   const groupIdBytes = identitiesDoc.docGroups[docUrl];
   if (!groupIdBytes) {
-    console.log("GroupId not found in docGroups for url:", docUrl);
+    console.error("GroupId not found in docGroups for url:", docUrl);
     return;
   }
   const groupId = new Identifier(groupIdBytes);
   const group = kh.getGroup(groupId);
   if (!access || !agent) {
-    console.log("Failed to add member: invalid access or agent!");
+    console.error("Failed to add member: invalid access or agent!");
     return;
   }
   if (!group) {
-    console.log(`Failed to add member: group not found for id ${groupId}`);
+    console.error(`Failed to add member: group not found for id ${groupId}`);
     return;
   }
 
@@ -96,13 +96,13 @@ export async function revokeMemberFromDoc(
   const agent = kh.getAgent(identifier);
 
   if (!agent) {
-    console.log("Agent to revoke not found");
+    console.error("Agent to revoke not found");
     return;
   }
 
   const groupIdBytes = identitiesDoc.docGroups[docUrl];
   if (!groupIdBytes) {
-    console.log(
+    console.error(
       `Failed to revoke member: groupId not found in docGroups for url: ${docUrl}`,
     );
     return;
@@ -111,7 +111,7 @@ export async function revokeMemberFromDoc(
   const group = kh.getGroup(groupId);
 
   if (!group) {
-    console.log(`Failed to revoke member: group not found for id ${groupId}`);
+    console.error(`Failed to revoke member: group not found for id ${groupId}`);
     return;
   }
 

@@ -44,7 +44,7 @@ export const DocumentList = ({ docUrl, identitiesDocUrl, selectedDocument, onSel
       if (syncServer.individual) {
         membersToAdd.push([syncServer.individual, "pull"])
       } else {
-        console.log("Missing syncServer individual!")
+        console.error("Missing syncServer individual!")
       }
 
       const newTaskList = await generateDoc(

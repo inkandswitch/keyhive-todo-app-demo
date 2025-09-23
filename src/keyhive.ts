@@ -20,9 +20,7 @@ export async function loadOrGenerateKeyhive(
       return keyhive;
     } catch (error: unknown) {
       const jsError = (error as { toError: () => Error }).toError();
-      console.log("Failed to load archive:", jsError.message);
-      console.log("Full error:", jsError);
-      console.log("Will create new keyhive instead");
+      console.error("Failed to load archive:", jsError);
     }
   }
 

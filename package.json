@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@automerge/automerge-keyhive-network-adapter": "^0.0.0-alpha.3",
+    "@automerge/automerge-keyhive-network-adapter": "^0.0.0-alpha.6",
     "@automerge/automerge-repo": "^2.2.0",
     "@automerge/react": "^2.0.0",
     "@keyhive/keyhive": "^0.0.0-alpha.1",

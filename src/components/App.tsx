@@ -1,5 +1,5 @@
 import keyhiveLogo from "/honeybee.png";
-import { isValidAutomergeUrl, type AutomergeUrl, useDocument } from "@automerge/react";
+import { isValidAutomergeUrl, type AutomergeUrl, useDocument, Message } from "@automerge/react";
 import { TaskList } from "./TaskList";
 import { DocumentList } from "./DocumentList";
 import { useHash } from "react-use";
@@ -24,33 +24,26 @@ function App({ docUrl, identitiesUrl, appData, storeKeyhiveFn }: AppProps) {
     setKeyhiveUpdateTracker(v => v + 1);
   }, [storeKeyhiveFn]);
 
+  appData.keyhiveNetworkAdapter.on("keyhive", (msg: Message) => {
+    if (msg.data) {
+      const archive = new Archive(msg.data);
+      appData.keyhive.ingestArchive(archive);
+      // Store without syncing back
+      storeKeyhive(appData.keyhive, false);
+    } else {
+      console.error("Expected keyhive data not found in received Message")
+    }
+  })
+
   // Polling for keyhive updates
   useEffect(() => {
-    const fetchAndIngestArchive = async () => {
-      try {
-        const response = await fetch('http://localhost:3030/access');
-        if (!response.ok) {
-          console.error(`Failed to fetch archive: ${response.status} ${response.statusText}`);
-          return;
-        }
-
-        const data = await response.json();
-        if (data.archive) {
-          const archiveBytes = new Uint8Array(data.archive);
-          const archive = new Archive(archiveBytes);
-          appData.keyhive.ingestArchive(archive);
-
-          // Store without syncing back
-          storeKeyhive(appData.keyhive, false);
-        }
-      } catch (error) {
-        console.error('Error fetching/ingesting archive:', error);
-      }
+    const requestKeyhive = async () => {
+      appData.keyhiveNetworkAdapter.requestKeyhive()
     };
 
-    const interval = setInterval(fetchAndIngestArchive, 2000);
+    const interval = setInterval(requestKeyhive, 5000);
     return () => clearInterval(interval);
-  }, [appData.keyhive, storeKeyhive]);
+  }, [appData.keyhiveNetworkAdapter]);
 
   const [activeState, setActiveState] = useState(appData.active);
   const [identitiesDoc, changeIdentitiesDoc] = useDocument<IdentitiesDocument>(identitiesUrl, {
