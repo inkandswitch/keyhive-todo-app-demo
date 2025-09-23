@@ -4,11 +4,6 @@ import { StateDB } from "./db";
 import { KeyhiveNetworkAdapter, peerIdFromSigner } from "@automerge/automerge-keyhive-network-adapter";
 import { SyncServer } from "./server";
 
-export type User = {
-  peerId: PeerId;
-  name?: string;
-  avatar: Uint8Array | null;
-};
 
 export type Active = {
   keyPair: CryptoKeyPair;
@@ -23,10 +18,7 @@ export type Active = {
 
 export type AccessString = "admin" | "write" | "read" | "pull";
 
-// Map from Automerge document URL to keyhive doc
-export type DocMap = Map<AutomergeUrl, Identifier>;
-// Map from Automerge document URL to its keyhive group
-export type GroupMap = Map<AutomergeUrl, Identifier>;
+
 
 export type AppData = {
   individual: Individual;

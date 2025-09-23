@@ -13,6 +13,7 @@
     "@automerge/automerge-keyhive-network-adapter": "^0.0.0-alpha.6",
     "@automerge/automerge-repo": "^2.2.0",
     "@automerge/react": "^2.0.0",
+    "@automerge/rootstock": "link:../gaios/packages/rootstock/dist",
     "@keyhive/keyhive": "^0.0.0-alpha.1",
     "@noble/hashes": "^2.0.0",
     "clsx": "^2.1.0",

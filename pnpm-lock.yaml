@@ -17,6 +17,9 @@ importers:
       '@automerge/react':
         specifier: ^2.0.0
         version: 2.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@automerge/rootstock':
+        specifier: link:../gaios/packages/rootstock/dist
+        version: link:../gaios/packages/rootstock/dist
       '@keyhive/keyhive':
         specifier: ^0.0.0-alpha.1
         version: 0.0.0-alpha.1
