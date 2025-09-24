@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect } from "react";
+import React, { Suspense } from "react";
 import ReactDOM from "react-dom/client";
 import App from "./components/App.tsx";
 import "./index.css";
@@ -8,9 +8,9 @@ import {
   RepoContext,
   DocHandle,
 } from "@automerge/react"
-import { getOrCreateRoot, RootDocument } from "./rootDoc.ts";
+import { getOrCreateRoot } from "./rootDoc.ts"
 import { Keyhive } from "@keyhive/keyhive";
-import { Identity } from "@automerge/rootstock"
+import { Identity } from "@automerge/rootstock-identity"
 
 export const plugins = [
   {
@@ -32,11 +32,11 @@ export const plugins = [
           identity: Identity;
         }) {
           console.log("Entry point")
-          useEffect(() => {
-            (async () => {
-              await init(element, handle, repo, identity)
-            })()
-          }, [])
+          init(element, handle, repo, identity).then(() => {
+            console.log("Keyhive demo initialized")
+          }).catch(err => {
+            console.error("Failed to initialize keyhive demo:", err)
+          })
         },
       };
     },
@@ -45,7 +45,7 @@ export const plugins = [
 
 async function init(
   element: HTMLElement,
-  handle: DocHandle<{ documents: AutomergeUrl[] }>,
+  _handle: DocHandle<{ documents: AutomergeUrl[] }>,
   repo: Repo,
   identity: Identity,
 ): Promise<void> {
@@ -59,6 +59,10 @@ async function init(
       identity.keyhiveAdapter.syncKeyhive(kh)
     }
   };
+
+  if (!identity.active.individual) {
+    throw new Error("Missing active Individual")
+  }
 
   const appData = {
     individual: identity.active.individual,

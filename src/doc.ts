@@ -8,7 +8,7 @@ import {
   Keyhive,
 } from "@keyhive/keyhive";
 import { AccessString } from "./user";
-import { IdentitiesDocument } from "./identities";
+import { IdentitiesDocument } from "@automerge/rootstock-identity";
 
 export type DocAccessList = Record<string, Access>;
 

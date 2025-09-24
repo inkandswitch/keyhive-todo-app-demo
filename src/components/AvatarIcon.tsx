@@ -1,4 +1,4 @@
-import { Active } from '../user';
+import { Active } from "@automerge/rootstock-identity";
 
 interface AvatarIconProps {
   onClick: () => void;

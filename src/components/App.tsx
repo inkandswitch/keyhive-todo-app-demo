@@ -7,8 +7,8 @@ import { AvatarIcon } from "./AvatarIcon";
 import { UserModal } from "./UserModal";
 import { useState, useEffect, useCallback } from "react";
 import { AppData } from "../user";
-import { IdentitiesDocument } from "../identities";
 import { Archive, Keyhive } from "@keyhive/keyhive";
+import { IdentitiesDocument } from "@automerge/rootstock-identity";
 
 type AppProps = {
   docUrl: AutomergeUrl;
@@ -24,7 +24,8 @@ function App({ docUrl, identitiesUrl, appData, storeKeyhiveFn }: AppProps) {
     setKeyhiveUpdateTracker(v => v + 1);
   }, [storeKeyhiveFn]);
 
-  appData.keyhiveNetworkAdapter.on("keyhive", (msg: Message) => {
+  // TODO: Add real keyhive event and remove this `as any`
+  (appData.keyhiveNetworkAdapter as any).on("keyhive", (msg: Message) => {
     if (msg.data) {
       const archive = new Archive(msg.data);
       appData.keyhive.ingestArchive(archive);

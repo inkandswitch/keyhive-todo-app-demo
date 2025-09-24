@@ -1,9 +1,9 @@
 import { AutomergeUrl, useDocument, updateText } from "@automerge/react";
 import { ShareModal } from "./ShareModal";
 import { useState, useMemo } from "react";
-import { IdentitiesDocument } from "../identities";
-import { Active } from "../user";
+import { Active } from "@automerge/rootstock-identity";
 import { DocumentId, Keyhive } from "@keyhive/keyhive";
+import { IdentitiesDocument } from '@automerge/rootstock-identity';
 
 export interface Task {
   title: string;

@@ -5,9 +5,8 @@ import { RootDocument } from "../rootDoc";
 import { useEffect, useState } from "react";
 import { AccessString } from "../user";
 import { generateDoc } from "../doc";
-import { SyncServer } from "../server";
-import { IdentitiesDocument } from "../identities";
 import { Individual, Keyhive } from "@keyhive/keyhive";
+import { IdentitiesDocument, SyncServer } from "@automerge/rootstock-identity";
 
 interface DocumentListProps {
   docUrl: AutomergeUrl;

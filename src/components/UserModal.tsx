@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Active } from '../user';
-import { StateDB } from '../db';
-import { IdentitiesDocument } from '../identities';
+import { StateDB } from "@automerge/rootstock-identity";
 import { uint8ArrayToHex } from '../doc';
+import { IdentitiesDocument } from '@automerge/rootstock-identity';
+import { Active } from '@automerge/rootstock-identity';
 
 interface UserModalProps {
   isOpen: boolean;

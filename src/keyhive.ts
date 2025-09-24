@@ -1,5 +1,5 @@
+import { StateDB } from "@automerge/rootstock-identity";
 import { Archive, CiphertextStore, Keyhive, Signer } from "@keyhive/keyhive";
-import { StateDB } from "./db";
 
 export type KeyhiveArchiveBytes = Uint8Array;
 

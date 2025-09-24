@@ -1,9 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
-import { IdentitiesDocument } from '../identities';
 import { AutomergeUrl } from '@automerge/react';
 import { Access, ContactCard, DocumentId, Keyhive } from '@keyhive/keyhive';
 import { accessListForDoc, addMemberToDoc, revokeMemberFromDoc, DocAccessList, uint8ArrayToHex } from '../doc';
-import { Active } from '../user';
+import { Active } from "@automerge/rootstock-identity";
+import { IdentitiesDocument } from '@automerge/rootstock-identity';
 
 interface ShareModalProps {
   isOpen: boolean;
