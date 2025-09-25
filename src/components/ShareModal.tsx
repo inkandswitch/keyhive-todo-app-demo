@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { AutomergeUrl } from '@automerge/react';
-import { Access, ContactCard, DocumentId, Keyhive } from '@keyhive/keyhive';
+import { Access, ContactCard, DocumentId, Keyhive } from '@keyhive/keyhive/slim';
 import { accessListForDoc, addMemberToDoc, revokeMemberFromDoc, DocAccessList, uint8ArrayToHex } from '../doc';
 import { Active } from "@automerge/rootstock-identity";
 import { IdentitiesDocument } from '@automerge/rootstock-identity';

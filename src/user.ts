@@ -1,4 +1,4 @@
-import { Individual, Keyhive } from "@keyhive/keyhive";
+import { Individual, Keyhive } from "@keyhive/keyhive/slim";
 import { KeyhiveNetworkAdapter } from "@automerge/automerge-keyhive-network-adapter";
 import { SyncServer } from "@automerge/rootstock-identity";
 import { Active } from "@automerge/rootstock-identity";
@@ -14,4 +14,3 @@ export type AppData = {
   db: StorageAdapterInterface;
   syncServer: SyncServer;
 };
-

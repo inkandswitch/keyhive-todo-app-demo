@@ -6,7 +6,7 @@ import {
   Identifier,
   Individual,
   Keyhive,
-} from "@keyhive/keyhive";
+} from "@keyhive/keyhive/slim";
 import { AccessString } from "./user";
 import { IdentitiesDocument } from "@automerge/rootstock-identity";
 

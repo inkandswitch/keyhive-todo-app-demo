@@ -10,12 +10,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@automerge/automerge-keyhive-network-adapter": "0.0.0-alpha.7",
+    "@automerge/automerge-keyhive-network-adapter": "0.0.0-alpha.13",
     "@automerge/automerge-repo": "^2.3.1",
     "@automerge/react": "^2.3.1",
     "@automerge/rootstock": "link:../gaios/packages/rootstock/dist",
     "@automerge/rootstock-identity": "link:../gaios/packages/rootstock-identity",
-    "@keyhive/keyhive": "0.0.0-alpha.1",
+    "@keyhive/keyhive": "0.0.0-alpha.5",
     "@noble/hashes": "^2.0.1",
     "clsx": "^2.1.1",
     "react": "^18.3.1",
@@ -32,7 +32,7 @@
     "autoprefixer": "^10.4.21",
     "eslint": "^8.57.1",
     "eslint-plugin-react-hooks": "^4.6.2",
-    "eslint-plugin-react-refresh": "^0.4.21",
+    "eslint-plugin-react-refresh": "^0.4.22",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.9.2",

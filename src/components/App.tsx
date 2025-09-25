@@ -7,7 +7,7 @@ import { AvatarIcon } from "./AvatarIcon";
 import { UserModal } from "./UserModal";
 import { useState, useEffect, useCallback } from "react";
 import { AppData } from "../user";
-import { Archive, Keyhive } from "@keyhive/keyhive";
+import { Archive, Keyhive } from "@keyhive/keyhive/slim";
 import { IdentitiesDocument } from "@automerge/rootstock-identity";
 
 type AppProps = {

@@ -5,7 +5,7 @@ import { RootDocument } from "../rootDoc";
 import { useEffect, useState } from "react";
 import { AccessString } from "../user";
 import { generateDoc } from "../doc";
-import { Individual, Keyhive } from "@keyhive/keyhive";
+import { Individual, Keyhive } from "@keyhive/keyhive/slim";
 import { IdentitiesDocument, SyncServer } from "@automerge/rootstock-identity";
 
 interface DocumentListProps {
