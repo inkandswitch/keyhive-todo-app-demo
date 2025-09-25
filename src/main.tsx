@@ -9,7 +9,6 @@ import {
   DocHandle,
 } from "@automerge/react"
 import { getOrCreateRoot } from "./rootDoc.ts"
-import { Keyhive } from "@keyhive/keyhive";
 import { Identity } from "@automerge/rootstock-identity"
 
 export const plugins = [
@@ -53,13 +52,6 @@ async function init(
   const rootDocUrl = getOrCreateRoot(repo);
   const rootDocHandle = await repo.find(rootDocUrl);
 
-  const storeKeyhive = async (kh: Keyhive, shouldSync: boolean = true) => {
-    identity.keyhiveDB.store(kh.toArchive().toBytes());
-    if (shouldSync) {
-      identity.keyhiveAdapter.syncKeyhive(kh)
-    }
-  };
-
   if (!identity.active.individual) {
     throw new Error("Missing active Individual")
   }
@@ -69,7 +61,7 @@ async function init(
     active: identity.active,
     keyhive: identity.keyhive,
     keyhiveNetworkAdapter: identity.keyhiveAdapter,
-    db: identity.activeDB,
+    db: identity.keyhiveStorage,
     syncServer: identity.syncServer,
   }
 
@@ -77,7 +69,7 @@ async function init(
     <React.StrictMode>
       <Suspense fallback={<div>Loading a document...</div>}>
         <RepoContext.Provider value={repo}>
-          <App docUrl={rootDocHandle.url} identitiesUrl={identity.identitiesDocUrl} appData={appData} storeKeyhiveFn={storeKeyhive} />
+          <App docUrl={rootDocHandle.url} identitiesUrl={identity.identitiesDocUrl} appData={appData} storeKeyhiveFn={identity.storeKeyhive} />
         </RepoContext.Provider>
       </Suspense>
     </React.StrictMode>,

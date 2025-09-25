@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { StateDB } from "@automerge/rootstock-identity";
 import { uint8ArrayToHex } from '../doc';
-import { IdentitiesDocument } from '@automerge/rootstock-identity';
+import { IdentitiesDocument, storeActiveKeyPair } from '@automerge/rootstock-identity';
 import { Active } from '@automerge/rootstock-identity';
+import { StorageAdapterInterface } from '@automerge/react';
 
 interface UserModalProps {
   isOpen: boolean;
@@ -11,7 +11,7 @@ interface UserModalProps {
   setActiveState: React.Dispatch<React.SetStateAction<Active>>;
   identitiesDoc: IdentitiesDocument;
   changeIdentitiesDoc: (updater: (doc: IdentitiesDocument) => void | Error) => void;
-  db: StateDB<Active>;
+  db: StorageAdapterInterface;
   currentName?: string;
   currentAvatarUrl?: string;
 }
@@ -80,24 +80,26 @@ export function UserModal({ isOpen, onClose, activeState, setActiveState, change
           avatar: newAvatar,
         }
       }
-      db.store(newActive)
-      changeIdentitiesDoc((doc: IdentitiesDocument) => {
-        const individual = newActive.individual
-        if (individual) {
-          const hexId = uint8ArrayToHex(individual.id.toBytes())
-          if (!doc.identities[hexId]) {
-            doc.identities[hexId] = {
-              peerId: newActive.user.peerId,
-              name: newActive.user.name,
-              avatar: newActive.user.avatar || null,
+      // TODO: We probably want to await this
+      storeActiveKeyPair(newActive.keyPair, db).then(() => {
+        changeIdentitiesDoc((doc: IdentitiesDocument) => {
+          const individual = newActive.individual
+          if (individual) {
+            const hexId = uint8ArrayToHex(individual.id.toBytes())
+            if (!doc.identities[hexId]) {
+              doc.identities[hexId] = {
+                peerId: newActive.user.peerId,
+                name: newActive.user.name,
+                avatar: newActive.user.avatar || null,
+              }
+            } else {
+              doc.identities[hexId].name = newActive.user.name
+              doc.identities[hexId].avatar = newActive.user.avatar || null
             }
           } else {
-            doc.identities[hexId].name = newActive.user.name
-            doc.identities[hexId].avatar = newActive.user.avatar || null
+            return new Error("Individual should have been present for active")
           }
-        } else {
-          return new Error("Individual should have been present for active")
-        }
+        })
       })
       return newActive
     })

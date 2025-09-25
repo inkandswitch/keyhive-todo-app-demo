@@ -21,8 +21,8 @@ importers:
         specifier: link:../gaios/packages/rootstock/dist
         version: link:../gaios/packages/rootstock/dist
       '@automerge/rootstock-identity':
-        specifier: link:../gaios/packages/rootstock-identity/dist
-        version: link:../gaios/packages/rootstock-identity/dist
+        specifier: link:../gaios/packages/rootstock-identity
+        version: link:../gaios/packages/rootstock-identity
       '@keyhive/keyhive':
         specifier: 0.0.0-alpha.1
         version: 0.0.0-alpha.1
