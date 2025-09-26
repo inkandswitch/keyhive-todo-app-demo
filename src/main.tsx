@@ -1,77 +1,35 @@
-import React, { Suspense } from "react";
-import ReactDOM from "react-dom/client";
-import App from "./components/App.tsx";
-import "./index.css";
-import {
-  AutomergeUrl,
-  Repo,
-  RepoContext,
-  DocHandle,
-} from "@automerge/react"
-import { getOrCreateRoot } from "./rootDoc.ts"
-import { Identity } from "@automerge/rootstock-identity"
+import ReactDOM from "react-dom/client"
+import "./index.css"
+import {Repo, DocHandle} from "@automerge/react/slim"
+import {KeyhiveKit} from "@automerge/rootstock-identity"
+import Frame, {TemporaryAccountInterface} from "./components/Frame.tsx"
 
 export const plugins = [
-  {
-    type: "patchwork:tool",
-    id: "keyhive-todo-demo",
-    name: "Keyhive TODO Demo",
-    supportedDataTypes: ["identity"],
-    async load() {
-      return {
-        render({
-          element,
-          handle,
-          repo,
-          identity,
-        }: {
-          element: HTMLElement;
-          handle: DocHandle<{ documents: AutomergeUrl[] }>;
-          repo: Repo;
-          identity: Identity;
-        }) {
-          console.log("Entry point")
-          init(element, handle, repo, identity).then(() => {
-            console.log("Keyhive demo initialized")
-          }).catch(err => {
-            console.error("Failed to initialize keyhive demo:", err)
-          })
-        },
-      };
-    },
-  },
-];
-
-async function init(
-  element: HTMLElement,
-  _handle: DocHandle<{ documents: AutomergeUrl[] }>,
-  repo: Repo,
-  identity: Identity,
-): Promise<void> {
-  console.log("HI")
-  const rootDocUrl = getOrCreateRoot(repo);
-  const rootDocHandle = await repo.find(rootDocUrl);
-
-  if (!identity.active.individual) {
-    throw new Error("Missing active Individual")
-  }
-
-  const appData = {
-    individual: identity.active.individual,
-    active: identity.active,
-    keyhive: identity.keyhive,
-    keyhiveNetworkAdapter: identity.keyhiveAdapter,
-    db: identity.keyhiveStorage,
-    syncServer: identity.syncServer,
-  }
-
-  ReactDOM.createRoot(element).render(
-    <React.StrictMode>
-      <Suspense fallback={<div>Loading a document...</div>}>
-        <RepoContext.Provider value={repo}>
-          <App docUrl={rootDocHandle.url} identitiesUrl={identity.identitiesDocUrl} appData={appData} storeKeyhiveFn={identity.storeKeyhive} />
-        </RepoContext.Provider>
-      </Suspense>
-    </React.StrictMode>,
-  );
-}
+	{
+		type: "patchwork:tool",
+		id: "keyhive-todo-demo",
+		name: "Keyhive TODO Demo",
+		supportedDataTypes: ["identity"],
+		async load() {
+			return {
+				render({
+					element,
+					handle,
+					repo,
+					keyhiveKit,
+				}: {
+					element: HTMLElement
+					handle: DocHandle<TemporaryAccountInterface>
+					repo: Repo
+					keyhiveKit: KeyhiveKit
+				}) {
+					const root = ReactDOM.createRoot(element)
+					root.render(
+						<Frame accountHandle={handle} keyhiveKit={keyhiveKit} repo={repo} />
+					)
+					return () => root.unmount()
+				},
+			}
+		},
+	},
+]
