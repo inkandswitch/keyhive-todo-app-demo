@@ -1,39 +1,39 @@
 // vite.config.ts
-import {defineConfig} from "vite"
-import react from "@vitejs/plugin-react"
-import wasm from "vite-plugin-wasm"
-import cssInjectedByJsPlugin from "vite-plugin-css-injected-by-js"
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import wasm from "vite-plugin-wasm";
+import cssInjectedByJsPlugin from "vite-plugin-css-injected-by-js";
 
 export default defineConfig({
-	server: {
-		port: 5557,
-		watch: {
-			ignored: [
-				"!**/node_modules/@automerge/automerge-keyhive-network-adapter/**",
-			],
-		},
-	},
+  server: {
+    port: 5557,
+    watch: {
+      ignored: [
+        "!**/node_modules/@automerge/automerge-keyhive-network-adapter/**",
+      ],
+    },
+  },
 
-	build: {
-		sourcemap: "inline",
-		target: "esnext",
-		rollupOptions: {
-			external: ["@keyhive/keyhive", "@keyhive/keyhive/slim"],
-			input: "./src/main.tsx",
-			output: {
-				format: "es",
-				entryFileNames: "[name].js",
-				chunkFileNames: "assets/[name]-[hash].js",
-				assetFileNames: "assets/[name][extname]",
-			},
-			preserveEntrySignatures: "strict",
-		},
-	},
+  build: {
+    sourcemap: "inline",
+    target: "esnext",
+    rollupOptions: {
+      external: ["@keyhive/keyhive", "@keyhive/keyhive/slim"],
+      input: "./src/main.tsx",
+      output: {
+        format: "es",
+        entryFileNames: "[name].js",
+        chunkFileNames: "assets/[name]-[hash].js",
+        assetFileNames: "assets/[name][extname]",
+      },
+      preserveEntrySignatures: "strict",
+    },
+  },
 
-	plugins: [wasm(), react(), cssInjectedByJsPlugin()],
+  plugins: [wasm(), react(), cssInjectedByJsPlugin()],
 
-	worker: {
-		format: "es",
-		plugins: () => [wasm()],
-	},
-})
+  worker: {
+    format: "es",
+    plugins: () => [wasm()],
+  },
+});

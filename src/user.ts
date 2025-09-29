@@ -1,1 +1,1 @@
-export type AccessString = "admin" | "write" | "read" | "pull"
+export type AccessString = "admin" | "write" | "read" | "pull";
