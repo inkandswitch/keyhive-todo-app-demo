@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { uint8ArrayToHex } from "../doc";
-import { Phonebook, storeActiveKeyPair } from "@automerge/rootstock-identity";
-import { Active } from "@automerge/rootstock-identity";
+import { Active, Phonebook, storeActiveKeyPair, uint8ArrayToHex } from "@automerge/rootstock-identity";
 import { StorageAdapterInterface } from "@automerge/react/slim";
 
 interface UserModalProps {

@@ -8,12 +8,13 @@ import {
 } from "@keyhive/keyhive/slim";
 import {
   accessListForDoc,
+  Active,
   addMemberToDoc,
-  revokeMemberFromDoc,
   DocAccessList,
+  Phonebook,
+  revokeMemberFromDoc,
   uint8ArrayToHex,
-} from "../doc";
-import { Active, Phonebook } from "@automerge/rootstock-identity";
+} from "@automerge/rootstock-identity";
 
 interface ShareModalProps {
   isOpen: boolean;

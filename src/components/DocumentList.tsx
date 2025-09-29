@@ -9,9 +9,8 @@ import { initTaskList, TaskList } from "./TaskList";
 import { RootDocument } from "../rootDoc";
 import { useEffect, useState } from "react";
 import { AccessString } from "../user";
-import { generateDoc } from "../doc";
 import type { Individual, Keyhive } from "@keyhive/keyhive/slim";
-import { Phonebook, SyncServer } from "@automerge/rootstock-identity";
+import { generateDoc, Phonebook, SyncServer } from "@automerge/rootstock-identity";
 
 interface DocumentListProps {
   docUrl: AutomergeUrl;
