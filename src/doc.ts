@@ -65,24 +65,46 @@ export async function addMemberToDoc(
   storeKeyhive: (kh: Keyhive) => void,
 ) {
   const agent = member.toAgent();
-  const groupIdBytes = phonebook.groups[docUrl];
-  if (!groupIdBytes) {
-    console.error("GroupId not found in docGroups for url:", docUrl);
+
+  ////
+  const docIdBytes = phonebook.ids[docUrl];
+  if (!docIdBytes) {
+    console.error("DocId not found in docGroups for url:", docUrl);
     return;
   }
-  const groupId = new Identifier(groupIdBytes);
-  const group = kh.getGroup(groupId);
+  const docId = new Identifier(docIdBytes);
+  const doc = kh.getDocument(docId);
   if (!access || !agent) {
     console.error("Failed to add member: invalid access or agent!");
     return;
   }
-  if (!group) {
-    console.error(`Failed to add member: group not found for id ${groupId}`);
+  if (!doc) {
+    console.error(`Failed to add member: doc not found for id ${docId}`);
     return;
   }
 
-  await kh.addMember(agent, group.toMembered(), access, []);
+  await kh.addMember(agent, doc.toMembered(), access, []);
   storeKeyhive(kh);
+  ////
+
+  // const groupIdBytes = phonebook.groups[docUrl];
+  // if (!groupIdBytes) {
+  //   console.error("GroupId not found in docGroups for url:", docUrl);
+  //   return;
+  // }
+  // const groupId = new Identifier(groupIdBytes);
+  // const group = kh.getGroup(groupId);
+  // if (!access || !agent) {
+  //   console.error("Failed to add member: invalid access or agent!");
+  //   return;
+  // }
+  // if (!group) {
+  //   console.error(`Failed to add member: group not found for id ${groupId}`);
+  //   return;
+  // }
+
+  // await kh.addMember(agent, group.toMembered(), access, []);
+  // storeKeyhive(kh);
 }
 
 export async function revokeMemberFromDoc(
