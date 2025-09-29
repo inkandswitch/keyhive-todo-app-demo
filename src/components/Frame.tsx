@@ -1,47 +1,67 @@
 import {
-	AutomergeUrl,
-	DocHandle,
-	Repo,
-	RepoContext,
-	useDocument,
-} from "@automerge/react/slim"
-import {KeyhiveKit} from "@automerge/rootstock-identity"
-import App from "./App"
-import {Suspense} from "react"
+  AutomergeUrl,
+  DocHandle,
+  Repo,
+  RepoContext,
+  useDocument,
+  useRepo,
+} from "@automerge/react/slim";
+import { KeyhiveKit } from "@automerge/identity";
+import App from "./App";
+import { Suspense, useEffect } from "react";
+import { RootDocument } from "../rootDoc";
 
 export interface TemporaryAccountInterface {
-	rootFolderUrl: AutomergeUrl
+  rootFolderUrl: AutomergeUrl;
 }
 
 export default function Frame({
-	accountHandle,
-	keyhiveKit,
-	repo,
+  accountHandle,
+  keyhiveKit,
+  repo,
 }: {
-	accountHandle: DocHandle<TemporaryAccountInterface>
-	keyhiveKit: KeyhiveKit
-	repo: Repo
+  accountHandle: DocHandle<TemporaryAccountInterface>;
+  keyhiveKit: KeyhiveKit;
+  repo: Repo;
 }) {
-	return (
-		<RepoContext.Provider value={repo}>
-			<FrameInner accountUrl={accountHandle.url} keyhiveKit={keyhiveKit} />
-		</RepoContext.Provider>
-	)
+  return (
+    <RepoContext.Provider value={repo}>
+      <FrameInner accountUrl={accountHandle.url} keyhiveKit={keyhiveKit} />
+    </RepoContext.Provider>
+  );
 }
 
-function FrameInner(props: {accountUrl: AutomergeUrl; keyhiveKit: KeyhiveKit}) {
-	const [account, _changeAccount] = useDocument<TemporaryAccountInterface>(
-		props.accountUrl,
-		{suspense: true}
-	)
+function FrameInner(props: {
+  accountUrl: AutomergeUrl;
+  keyhiveKit: KeyhiveKit;
+}) {
+  const repo = useRepo();
+  const [account, changeAccount] = useDocument<TemporaryAccountInterface>(
+    props.accountUrl,
+    { suspense: true },
+  );
 
-	return (
-		<Suspense>
-			<App
-				docUrl={account?.rootFolderUrl}
-				keyhiveKit={props.keyhiveKit}
-				storeKeyhiveFn={props.keyhiveKit.storeKeyhive}
-			/>
-		</Suspense>
-	)
+  useEffect(() => {
+    if (!account?.rootFolderUrl) {
+      console.log("[Demo] No rootFolderUrl found, creating root document");
+      const handle = repo.create<RootDocument>({ taskLists: [] });
+      console.log("[Demo] Created root document:", handle.url);
+      changeAccount((doc) => {
+        doc.rootFolderUrl = handle.url;
+      });
+    }
+  }, [account, changeAccount, repo]);
+
+  if (!account?.rootFolderUrl) {
+    return <div>Initializing...</div>;
+  }
+
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
+      <App
+        docUrl={account.rootFolderUrl}
+        keyhiveKit={props.keyhiveKit}
+      />
+    </Suspense>
+  );
 }
