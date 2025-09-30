@@ -11,12 +11,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@automerge/automerge-keyhive-network-adapter": "0.0.0-alpha.13",
-    "@automerge/automerge-repo": "^2.3.1",
+    "@automerge/automerge-keyhive-network-adapter": "0.0.0-alpha.16",
+    "@automerge/automerge-repo": "2.4.0-alpha.1",
     "@automerge/react": "^2.3.1",
     "@automerge/rootstock": "link:../gaios/packages/rootstock/dist",
     "@automerge/rootstock-identity": "link:../gaios/packages/rootstock-identity",
-    "@keyhive/keyhive": "0.0.0-alpha.7",
+    "@keyhive/keyhive": "0.0.0-alpha.8",
     "@noble/hashes": "^2.0.1",
     "clsx": "^2.1.1",
     "react": "^18.3.1",
@@ -28,7 +28,7 @@
   },
   "devDependencies": {
     "@noble/ed25519": "^3.0.0",
-    "@types/react": "^18.3.24",
+    "@types/react": "^18.3.25",
     "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react": "^4.7.0",
     "autoprefixer": "^10.4.21",
@@ -36,7 +36,7 @@
     "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-plugin-react-refresh": "^0.4.22",
     "postcss": "^8.5.6",
-    "prettier": "^3.5.3",
+    "prettier": "^3.6.2",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.9.2",
     "typescript-eslint": "^7.18.0",

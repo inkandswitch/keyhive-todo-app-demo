@@ -8,13 +8,13 @@ import {
 import { initTaskList, TaskList } from "./TaskList";
 import { RootDocument } from "../rootDoc";
 import { useEffect, useState } from "react";
-import { AccessString } from "../user";
-import type { Individual, Keyhive } from "@keyhive/keyhive/slim";
-import { generateDoc, Phonebook, SyncServer } from "@automerge/rootstock-identity";
+import { Access, type Individual, type Keyhive } from "@keyhive/keyhive/slim";
+import { addMemberToDoc, SyncServer } from "@automerge/rootstock-identity";
+
+type AccessString = "admin" | "write" | "read" | "pull";
 
 interface DocumentListProps {
   docUrl: AutomergeUrl;
-  phonebookUrl: AutomergeUrl;
   selectedDocument: AutomergeUrl | null;
   onSelectDocument: (docUrl: AutomergeUrl | null) => void;
   syncServer: SyncServer;
@@ -24,7 +24,6 @@ interface DocumentListProps {
 
 export const DocumentList = ({
   docUrl,
-  phonebookUrl,
   selectedDocument,
   onSelectDocument,
   syncServer,
@@ -33,9 +32,6 @@ export const DocumentList = ({
 }: DocumentListProps) => {
   const repo = useRepo();
   const [doc, changeDoc] = useDocument<RootDocument>(docUrl, {
-    suspense: true,
-  });
-  const [, changeIdentitiesDoc] = useDocument<Phonebook>(phonebookUrl, {
     suspense: true,
   });
   const [inputUrl, setInputUrl] = useState("");
@@ -58,13 +54,22 @@ export const DocumentList = ({
         console.error("Missing syncServer individual!");
       }
 
-      const newTaskList = await generateDoc(
-        keyhive,
-        changeIdentitiesDoc,
-        membersToAdd,
-        () => repo.create<TaskList>(initTaskList()),
-        storeKeyhive,
-      );
+      const newTaskList = repo.create<TaskList>(initTaskList());
+
+      for (const [individual, cap] of membersToAdd) {
+        const access = Access.tryFromString(cap);
+        if (!access) {
+          console.error("Failed to derive Access");
+          continue;
+        }
+        await addMemberToDoc(
+          keyhive,
+          newTaskList.url,
+          individual,
+          access,
+          storeKeyhive,
+        );
+      }
 
       changeDoc((d) => d.taskLists.push(newTaskList.url));
       onSelectDocument(newTaskList.url);

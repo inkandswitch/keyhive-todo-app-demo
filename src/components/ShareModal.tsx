@@ -1,20 +1,16 @@
 import { useState, useEffect, useMemo } from "react";
 import { AutomergeUrl } from "@automerge/react/slim";
-import {
-  Access,
-  ContactCard,
-  DocumentId,
-  Keyhive,
-} from "@keyhive/keyhive/slim";
+import { Access, ContactCard, Keyhive } from "@keyhive/keyhive/slim";
 import {
   accessListForDoc,
-  Active,
   addMemberToDoc,
   DocAccessList,
-  Phonebook,
+  docIdFromAutomergeUrl,
   revokeMemberFromDoc,
   uint8ArrayToHex,
 } from "@automerge/rootstock-identity";
+import { Phonebook } from "../phonebook";
+import { Identity } from "../active";
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -23,7 +19,7 @@ interface ShareModalProps {
   keyhive: Keyhive;
   storeKeyhive: (kh: Keyhive) => void;
   keyhiveUpdateTracker: number;
-  active: Active;
+  identity: Identity;
   onClose: () => void;
 }
 
@@ -34,21 +30,18 @@ export function ShareModal({
   keyhive,
   storeKeyhive,
   keyhiveUpdateTracker,
-  active,
+  identity,
   onClose,
 }: ShareModalProps) {
   const [userIdInput, setUserIdInput] = useState("");
   const [selectedAccessLevel, setSelectedAccessLevel] = useState("Write");
 
   const currentUserAccess = useMemo(() => {
-    const id = active.individual?.id;
+    const id = identity.active.individual.id;
     // FIXME: This should probably be an error
     if (!id) return undefined;
 
-    const docIdBytes = phonebook.ids[docUrl];
-    if (!docIdBytes) return undefined;
-
-    const keyhiveDocId = new DocumentId(docIdBytes);
+    const keyhiveDocId = docIdFromAutomergeUrl(docUrl);
 
     try {
       const access = keyhive.accessForDoc(id, keyhiveDocId);
@@ -58,13 +51,7 @@ export function ShareModal({
       return undefined;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    keyhiveUpdateTracker,
-    active.individual?.id,
-    phonebook.ids,
-    docUrl,
-    keyhive,
-  ]);
+  }, [keyhiveUpdateTracker, identity.active.individual.id, docUrl, keyhive]);
 
   const accessLevels = ["Pull", "Read", "Write", "Admin"];
   // You can share at your access level and below
@@ -74,8 +61,8 @@ export function ShareModal({
       )
     : [];
 
-  const currentUserHexId = active.individual?.id
-    ? uint8ArrayToHex(active.individual.id.toBytes())
+  const currentUserHexId = identity.active.individual.id
+    ? uint8ArrayToHex(identity.active.individual.id.toBytes())
     : null;
 
   useEffect(() => {
@@ -109,14 +96,7 @@ export function ShareModal({
           return;
         }
         const individual = keyhive.receiveContactCard(contactCard);
-        await addMemberToDoc(
-          keyhive,
-          docUrl,
-          phonebook,
-          individual,
-          access,
-          storeKeyhive,
-        );
+        await addMemberToDoc(keyhive, docUrl, individual, access, storeKeyhive);
 
         setUserIdInput("");
       } catch (error) {
@@ -127,13 +107,7 @@ export function ShareModal({
 
   const handleRemoveUser = async (hexId: string) => {
     try {
-      await revokeMemberFromDoc(
-        keyhive,
-        docUrl,
-        phonebook,
-        hexId,
-        storeKeyhive,
-      );
+      await revokeMemberFromDoc(keyhive, docUrl, hexId, storeKeyhive);
     } catch (error) {
       console.error("Error removing user:", error);
     }
@@ -147,7 +121,7 @@ export function ShareModal({
 
   if (!isOpen) return null;
 
-  const khDocId = new DocumentId(phonebook.ids[docUrl]);
+  const khDocId = docIdFromAutomergeUrl(docUrl);
   let docAccessList: DocAccessList = {};
   if (khDocId) {
     docAccessList = accessListForDoc(keyhive, khDocId);
@@ -240,25 +214,24 @@ export function ShareModal({
               ) : (
                 Object.entries(docAccessList)
                   .sort(([hexIdA], [hexIdB]) => {
-                    // Look up identity info for sorting
-                    const identityA = phonebook.contacts[hexIdA];
-                    const identityB = phonebook.contacts[hexIdB];
+                    const contactA = phonebook[hexIdA];
+                    const contactB = phonebook[hexIdB];
 
                     // Use name if available, otherwise use hex ID for sorting
                     const nameA =
-                      identityA?.name || `0x${hexIdA.slice(0, 12)}...`;
+                      contactA?.name || `0x${hexIdA.slice(0, 12)}...`;
                     const nameB =
-                      identityB?.name || `0x${hexIdB.slice(0, 12)}...`;
+                      contactB?.name || `0x${hexIdB.slice(0, 12)}...`;
 
                     return nameA.localeCompare(nameB);
                   })
                   .map(([hexId, access], index) => {
-                    const identity = phonebook.contacts[hexId];
+                    const contact = phonebook[hexId];
                     const displayName =
-                      identity?.name || `0x${hexId.slice(0, 12)}...`;
-                    const avatarSrc = identity?.avatar
+                      contact?.name || `0x${hexId.slice(0, 12)}...`;
+                    const avatarSrc = contact?.avatar
                       ? URL.createObjectURL(
-                          new Blob([new Uint8Array(identity.avatar)]),
+                          new Blob([new Uint8Array(contact.avatar)]),
                         )
                       : "/blankavatar.jpeg";
 

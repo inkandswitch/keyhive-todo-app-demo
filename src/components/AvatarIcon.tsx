@@ -1,14 +1,14 @@
-import { Active } from "@automerge/rootstock-identity";
+import { Identity } from "../active";
 
 interface AvatarIconProps {
   onClick: () => void;
-  activeState: Active;
+  identityState: Identity;
 }
 
-export function AvatarIcon({ onClick, activeState }: AvatarIconProps) {
-  const avatarUrl = activeState.contact.avatar
+export function AvatarIcon({ onClick, identityState }: AvatarIconProps) {
+  const avatarUrl = identityState.contact.avatar
     ? URL.createObjectURL(
-        new Blob([activeState.contact.avatar as BlobPart], {
+        new Blob([identityState.contact.avatar as BlobPart], {
           type: "image/jpeg",
         }),
       )
@@ -22,7 +22,7 @@ export function AvatarIcon({ onClick, activeState }: AvatarIconProps) {
     >
       <img
         src={avatarUrl || "/blankavatar.jpeg"}
-        alt={activeState.contact.name || "User avatar"}
+        alt={identityState.contact.name || "User avatar"}
         className="w-full h-full rounded-full object-cover"
       />
     </button>

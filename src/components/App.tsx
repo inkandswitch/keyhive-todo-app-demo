@@ -12,7 +12,9 @@ import { AvatarIcon } from "./AvatarIcon";
 import { UserModal } from "./UserModal";
 import { useState, useEffect, useCallback } from "react";
 import { Archive, Keyhive } from "@keyhive/keyhive/slim";
-import { KeyhiveKit, Phonebook } from "@automerge/rootstock-identity";
+import { KeyhiveKit } from "@automerge/rootstock-identity";
+import { Phonebook } from "../phonebook";
+import { Identity } from "../active";
 
 type AppProps = {
   docUrl: AutomergeUrl;
@@ -22,6 +24,9 @@ type AppProps = {
 
 function App({ docUrl, keyhiveKit, storeKeyhiveFn }: AppProps) {
   const [keyhiveUpdateTracker, setKeyhiveUpdateTracker] = useState(0);
+
+  // FIXME: Remove this and listen directly for keyhive mutation events
+  // to update the tracker
   const storeKeyhive = useCallback(
     (kh: Keyhive, shouldSync: boolean = true) => {
       storeKeyhiveFn(kh, shouldSync);
@@ -30,6 +35,7 @@ function App({ docUrl, keyhiveKit, storeKeyhiveFn }: AppProps) {
     [storeKeyhiveFn],
   );
 
+  // FIXME: Move out of demo code
   // TODO: Add real keyhive event and remove this `as any`
   (keyhiveKit.keyhiveAdapter as any).on("keyhive", (msg: Message) => {
     if (msg.data) {
@@ -42,6 +48,7 @@ function App({ docUrl, keyhiveKit, storeKeyhiveFn }: AppProps) {
     }
   });
 
+  // FIXME: Move out of demo code
   // Polling for keyhive updates
   useEffect(() => {
     const requestKeyhive = async () => {
@@ -53,7 +60,14 @@ function App({ docUrl, keyhiveKit, storeKeyhiveFn }: AppProps) {
   }, [keyhiveKit.keyhiveAdapter]);
 
   const phonebookUrl = "automerge:4LC8WQxBbLH92x9crDq5HwhUYopU" as AutomergeUrl;
-  const [activeState, setActiveState] = useState(keyhiveKit.active);
+  const identity: Identity = {
+    active: keyhiveKit.active,
+    contact: {
+      peerId: keyhiveKit.active.peerId,
+      avatar: null,
+    },
+  };
+  const [identityState, setIdentityState] = useState(identity);
   const [phonebook, changePhonebook] = useDocument<Phonebook>(phonebookUrl, {
     suspense: true,
   });
@@ -72,7 +86,6 @@ function App({ docUrl, keyhiveKit, storeKeyhiveFn }: AppProps) {
       <div className="w-80 border-r border-border bg-card">
         <DocumentList
           docUrl={docUrl}
-          phonebookUrl={phonebookUrl}
           onSelectDocument={(url) => {
             if (url) {
               setHash(url);
@@ -98,7 +111,7 @@ function App({ docUrl, keyhiveKit, storeKeyhiveFn }: AppProps) {
           <div className="absolute right-6 top-1/2 -translate-y-1/2">
             <AvatarIcon
               onClick={() => setIsUserModalOpen(true)}
-              activeState={activeState}
+              identityState={identityState}
             />
           </div>
         </header>
@@ -111,7 +124,7 @@ function App({ docUrl, keyhiveKit, storeKeyhiveFn }: AppProps) {
               phonebook={phonebook}
               keyhive={keyhiveKit.keyhive}
               storeKeyhive={storeKeyhive}
-              active={activeState}
+              identity={identityState}
               keyhiveUpdateTracker={keyhiveUpdateTracker}
             />
           ) : (
@@ -131,8 +144,8 @@ function App({ docUrl, keyhiveKit, storeKeyhiveFn }: AppProps) {
       <UserModal
         isOpen={isUserModalOpen}
         onClose={() => setIsUserModalOpen(false)}
-        activeState={activeState}
-        setActiveState={setActiveState}
+        identityState={identityState}
+        setIdentityState={setIdentityState}
         phonebook={phonebook}
         changePhonebook={changePhonebook}
         db={keyhiveKit.keyhiveStorage}

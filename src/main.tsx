@@ -24,6 +24,7 @@ export const plugins = [
           keyhiveKit: KeyhiveKit;
         }) {
           const root = ReactDOM.createRoot(element);
+
           root.render(
             <Frame
               accountHandle={handle}

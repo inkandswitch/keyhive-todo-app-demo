@@ -1,8 +1,10 @@
 import { AutomergeUrl, useDocument, updateText } from "@automerge/react/slim";
 import { ShareModal } from "./ShareModal";
 import { useState, useMemo } from "react";
-import { Active, Phonebook } from "@automerge/rootstock-identity";
-import { DocumentId, Keyhive } from "@keyhive/keyhive/slim";
+import { docIdFromAutomergeUrl } from "@automerge/rootstock-identity";
+import { Keyhive } from "@keyhive/keyhive/slim";
+import { Phonebook } from "../phonebook";
+import { Identity } from "../active";
 
 export interface Task {
   title: string;
@@ -27,7 +29,7 @@ interface TaskListProps {
   phonebook: Phonebook;
   keyhive: Keyhive;
   storeKeyhive: (kh: Keyhive) => void;
-  active: Active;
+  identity: Identity;
   keyhiveUpdateTracker: number;
 }
 
@@ -36,7 +38,7 @@ export const TaskList = ({
   phonebook,
   keyhive,
   storeKeyhive,
-  active,
+  identity,
   keyhiveUpdateTracker,
 }: TaskListProps) => {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -48,17 +50,11 @@ export const TaskList = ({
 
   // Check if greater than pull access. Recalculate when keyhive updates.
   const shouldShowShareButton = useMemo(() => {
-    const id = active.individual?.id;
+    const id = identity.active.individual.id;
     // FIXME: This should probably be an error
     if (!id) return false;
 
-    const docIdBytes = phonebook.ids[docUrl];
-    if (!docIdBytes) {
-      console.error(`KeyhiveDocument not found in docMap for URL: ${docUrl}`);
-      return false;
-    }
-
-    const keyhiveDocId = new DocumentId(docIdBytes);
+    const keyhiveDocId = docIdFromAutomergeUrl(docUrl);
 
     try {
       const access = keyhive.accessForDoc(id, keyhiveDocId);
@@ -72,25 +68,14 @@ export const TaskList = ({
       return false;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    keyhiveUpdateTracker,
-    active.individual?.id,
-    phonebook.ids,
-    docUrl,
-    keyhive,
-  ]);
+  }, [keyhiveUpdateTracker, identity.active.individual.id, docUrl, keyhive]);
 
   const userAccess = useMemo(() => {
-    const id = active.individual?.id;
+    const id = identity.active.individual.id;
     // FIXME: This should probably be an error
     if (!id) return undefined;
 
-    const docIdBytes = phonebook.ids[docUrl];
-    if (!docIdBytes) {
-      return undefined;
-    }
-
-    const keyhiveDocId = new DocumentId(docIdBytes);
+    const keyhiveDocId = docIdFromAutomergeUrl(docUrl);
 
     try {
       const access = keyhive.accessForDoc(id, keyhiveDocId);
@@ -100,13 +85,7 @@ export const TaskList = ({
       return undefined;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    keyhiveUpdateTracker,
-    active.individual?.id,
-    phonebook.ids,
-    docUrl,
-    keyhive,
-  ]);
+  }, [keyhiveUpdateTracker, identity.active.individual.id, docUrl, keyhive]);
 
   const canEdit = userAccess === "Write" || userAccess === "Admin";
   const canRead =
@@ -267,7 +246,7 @@ export const TaskList = ({
         keyhive={keyhive}
         storeKeyhive={storeKeyhive}
         keyhiveUpdateTracker={keyhiveUpdateTracker}
-        active={active}
+        identity={identity}
         onClose={() => setIsShareModalOpen(false)}
       />
     </div>

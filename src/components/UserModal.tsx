@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { Active, Phonebook, storeActiveKeyPair, uint8ArrayToHex } from "@automerge/rootstock-identity";
+import {
+  storeActiveKeyPair,
+  uint8ArrayToHex,
+} from "@automerge/rootstock-identity";
 import { StorageAdapterInterface } from "@automerge/react/slim";
+import { Phonebook } from "../phonebook";
+import { Identity } from "../active";
 
 interface UserModalProps {
   isOpen: boolean;
   onClose: () => void;
-  activeState: Active;
-  setActiveState: React.Dispatch<React.SetStateAction<Active>>;
+  identityState: Identity;
+  setIdentityState: React.Dispatch<React.SetStateAction<Identity>>;
   phonebook: Phonebook;
   changePhonebook: (updater: (doc: Phonebook) => void | Error) => void;
   db: StorageAdapterInterface;
@@ -17,26 +22,26 @@ interface UserModalProps {
 export function UserModal({
   isOpen,
   onClose,
-  activeState,
-  setActiveState,
+  identityState,
+  setIdentityState,
   changePhonebook: changePhonebook,
   db,
 }: UserModalProps) {
-  const [name, setName] = useState(activeState.contact.name || "");
+  const [name, setName] = useState(identityState.contact.name || "");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState("");
 
   useEffect(() => {
-    if (activeState.contact.avatar) {
+    if (identityState.contact.avatar) {
       const url = URL.createObjectURL(
-        new Blob([activeState.contact.avatar as BlobPart]),
+        new Blob([identityState.contact.avatar as BlobPart]),
       );
       setAvatarPreview(url);
       return () => URL.revokeObjectURL(url);
     } else {
       setAvatarPreview("");
     }
-  }, [activeState.contact.avatar]);
+  }, [identityState.contact.avatar]);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -71,44 +76,44 @@ export function UserModal({
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    let newAvatar: Uint8Array | null = activeState.contact.avatar;
+    let newAvatar: Uint8Array | null = identityState.contact.avatar;
 
     if (avatarFile) {
       const arrayBuffer = await avatarFile.arrayBuffer();
       newAvatar = new Uint8Array(arrayBuffer);
     }
 
-    setActiveState((active: Active) => {
-      const newActive = {
-        ...active,
+    setIdentityState((identity: Identity) => {
+      const newIdentity = {
+        ...identity,
         contact: {
-          ...active.contact,
+          ...identity.contact,
           name: name,
           avatar: newAvatar,
         },
       };
       // TODO: We probably want to await this
-      storeActiveKeyPair(newActive.keyPair, db).then(() => {
+      storeActiveKeyPair(newIdentity.active.keyPair, db).then(() => {
         changePhonebook((doc: Phonebook) => {
-          const individual = newActive.individual;
+          const individual = newIdentity.active.individual;
           if (individual) {
             const hexId = uint8ArrayToHex(individual.id.toBytes());
-            if (!doc.contacts[hexId]) {
-              doc.contacts[hexId] = {
-                peerId: newActive.contact.peerId,
-                name: newActive.contact.name,
-                avatar: newActive.contact.avatar || null,
+            if (!doc[hexId]) {
+              doc[hexId] = {
+                peerId: newIdentity.contact.peerId,
+                name: newIdentity.contact.name,
+                avatar: newIdentity.contact.avatar || null,
               };
             } else {
-              doc.contacts[hexId].name = newActive.contact.name;
-              doc.contacts[hexId].avatar = newActive.contact.avatar || null;
+              doc[hexId].name = newIdentity.contact.name;
+              doc[hexId].avatar = newIdentity.contact.avatar || null;
             }
           } else {
             return new Error("Individual should have been present for active");
           }
         });
       });
-      return newActive;
+      return newIdentity;
     });
 
     onClose();
@@ -225,7 +230,7 @@ export function UserModal({
                 Contact Card
               </label>
               <div className="w-full px-3 py-2 bg-muted text-muted-foreground rounded-md text-sm font-mono break-all">
-                {activeState.contactCard}
+                {identityState.active.contactCard}
               </div>
             </div>
 
