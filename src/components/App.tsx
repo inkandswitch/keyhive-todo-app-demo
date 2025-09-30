@@ -148,7 +148,6 @@ function App({ docUrl, keyhiveKit, storeKeyhiveFn }: AppProps) {
         setIdentityState={setIdentityState}
         phonebook={phonebook}
         changePhonebook={changePhonebook}
-        db={keyhiveKit.keyhiveStorage}
       />
     </div>
   );

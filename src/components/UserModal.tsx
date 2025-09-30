@@ -14,7 +14,6 @@ interface UserModalProps {
   setIdentityState: React.Dispatch<React.SetStateAction<Identity>>;
   phonebook: Phonebook;
   changePhonebook: (updater: (doc: Phonebook) => void | Error) => void;
-  db: StorageAdapterInterface;
   currentName?: string;
   currentAvatarUrl?: string;
 }
@@ -25,7 +24,6 @@ export function UserModal({
   identityState,
   setIdentityState,
   changePhonebook: changePhonebook,
-  db,
 }: UserModalProps) {
   const [name, setName] = useState(identityState.contact.name || "");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -92,26 +90,24 @@ export function UserModal({
           avatar: newAvatar,
         },
       };
-      // TODO: We probably want to await this
-      storeActiveKeyPair(newIdentity.active.keyPair, db).then(() => {
-        changePhonebook((doc: Phonebook) => {
-          const individual = newIdentity.active.individual;
-          if (individual) {
-            const hexId = uint8ArrayToHex(individual.id.toBytes());
-            if (!doc[hexId]) {
-              doc[hexId] = {
-                peerId: newIdentity.contact.peerId,
-                name: newIdentity.contact.name,
-                avatar: newIdentity.contact.avatar || null,
-              };
-            } else {
-              doc[hexId].name = newIdentity.contact.name;
-              doc[hexId].avatar = newIdentity.contact.avatar || null;
-            }
+
+      changePhonebook((doc: Phonebook) => {
+        const individual = newIdentity.active.individual;
+        if (individual) {
+          const hexId = uint8ArrayToHex(individual.id.toBytes());
+          if (!doc[hexId]) {
+            doc[hexId] = {
+              peerId: newIdentity.contact.peerId,
+              name: newIdentity.contact.name,
+              avatar: newIdentity.contact.avatar || null,
+            };
           } else {
-            return new Error("Individual should have been present for active");
+            doc[hexId].name = newIdentity.contact.name;
+            doc[hexId].avatar = newIdentity.contact.avatar || null;
           }
-        });
+        } else {
+          return new Error("Individual should have been present for active");
+        }
       });
       return newIdentity;
     });
