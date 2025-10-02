@@ -11,7 +11,7 @@ export const setRootDocUrl = (url: AutomergeUrl): void => {
   localStorage.setItem(ROOT_DOC_URL_KEY, url);
 };
 
-export const getOrCreateRoot = (repo: Repo): AutomergeUrl => {
+export const getOrCreateRoot = async (repo: Repo): Promise<AutomergeUrl> => {
   // Check if we already have a root document
   const existingId = localStorage.getItem(ROOT_DOC_URL_KEY);
   if (existingId) {
@@ -19,7 +19,9 @@ export const getOrCreateRoot = (repo: Repo): AutomergeUrl => {
   }
 
   // Otherwise create one and (synchronously) store it
-  const root = repo.create<RootDocument>({ taskLists: [] });
+  console.log("Creating root doc")
+  const root = await repo.create2<RootDocument>({ taskLists: [] });
+  console.log("Created root doc")
   localStorage.setItem(ROOT_DOC_URL_KEY, root.url);
   return root.url;
 };

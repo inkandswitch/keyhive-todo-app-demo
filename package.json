@@ -11,12 +11,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@automerge/automerge-keyhive-network-adapter": "0.0.0-alpha.16",
-    "@automerge/automerge-repo": "2.4.0-alpha.1",
-    "@automerge/react": "^2.3.1",
+    "@automerge/automerge-keyhive-network-adapter": "link:../../../automerge-keyhive-network-adapter",
+    "@automerge/automerge-repo": "2.4.0-alpha.2",
+    "@automerge/react": "2.4.0-alpha.2",
     "@automerge/rootstock": "link:../gaios/packages/rootstock/dist",
     "@automerge/rootstock-identity": "link:../gaios/packages/rootstock-identity",
-    "@keyhive/keyhive": "0.0.0-alpha.8",
+    "@keyhive/keyhive": "0.0.0-alpha.10",
     "@noble/hashes": "^2.0.1",
     "clsx": "^2.1.1",
     "react": "^18.3.1",

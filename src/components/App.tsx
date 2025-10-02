@@ -3,61 +3,29 @@ import {
   isValidAutomergeUrl,
   type AutomergeUrl,
   useDocument,
-  Message,
 } from "@automerge/react/slim";
 import { TaskList } from "./TaskList";
 import { DocumentList } from "./DocumentList";
 import { useHash } from "react-use";
 import { AvatarIcon } from "./AvatarIcon";
 import { UserModal } from "./UserModal";
-import { useState, useEffect, useCallback } from "react";
-import { Archive, Keyhive } from "@keyhive/keyhive/slim";
+import { useState } from "react";
 import { KeyhiveKit } from "@automerge/rootstock-identity";
 import { Phonebook } from "../phonebook";
 import { Identity } from "../active";
+import { Event } from "@keyhive/keyhive";
 
 type AppProps = {
   docUrl: AutomergeUrl;
   keyhiveKit: KeyhiveKit;
-  storeKeyhiveFn: (kh: Keyhive, shouldSync?: boolean) => void;
 };
 
-function App({ docUrl, keyhiveKit, storeKeyhiveFn }: AppProps) {
+function App({ docUrl, keyhiveKit }: AppProps) {
   const [keyhiveUpdateTracker, setKeyhiveUpdateTracker] = useState(0);
 
-  // FIXME: Remove this and listen directly for keyhive mutation events
-  // to update the tracker
-  const storeKeyhive = useCallback(
-    (kh: Keyhive, shouldSync: boolean = true) => {
-      storeKeyhiveFn(kh, shouldSync);
-      setKeyhiveUpdateTracker((v) => v + 1);
-    },
-    [storeKeyhiveFn],
-  );
-
-  // FIXME: Move out of demo code
-  // TODO: Add real keyhive event and remove this `as any`
-  (keyhiveKit.keyhiveAdapter as any).on("keyhive", (msg: Message) => {
-    if (msg.data) {
-      const archive = new Archive(msg.data);
-      keyhiveKit.keyhive.ingestArchive(archive);
-      // Store without syncing back
-      storeKeyhive(keyhiveKit.keyhive, false);
-    } else {
-      console.error("Expected keyhive data not found in received Message");
-    }
+  keyhiveKit.keyhiveEmitter.on("update", (_event: Event) => {
+    setKeyhiveUpdateTracker((v) => v + 1);
   });
-
-  // FIXME: Move out of demo code
-  // Polling for keyhive updates
-  useEffect(() => {
-    const requestKeyhive = async () => {
-      keyhiveKit.keyhiveAdapter.requestKeyhive();
-    };
-
-    const interval = setInterval(requestKeyhive, 5000);
-    return () => clearInterval(interval);
-  }, [keyhiveKit.keyhiveAdapter]);
 
   const phonebookUrl = "automerge:4LC8WQxBbLH92x9crDq5HwhUYopU" as AutomergeUrl;
   const identity: Identity = {
@@ -96,7 +64,6 @@ function App({ docUrl, keyhiveKit, storeKeyhiveFn }: AppProps) {
           selectedDocument={selectedDocUrl}
           syncServer={keyhiveKit.syncServer}
           keyhive={keyhiveKit.keyhive}
-          storeKeyhive={storeKeyhive}
         />
       </div>
 
@@ -123,7 +90,6 @@ function App({ docUrl, keyhiveKit, storeKeyhiveFn }: AppProps) {
               docUrl={selectedDocUrl}
               phonebook={phonebook}
               keyhive={keyhiveKit.keyhive}
-              storeKeyhive={storeKeyhive}
               identity={identityState}
               keyhiveUpdateTracker={keyhiveUpdateTracker}
             />

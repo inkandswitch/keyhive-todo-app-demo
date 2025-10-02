@@ -43,7 +43,6 @@ function FrameInner(props: {
       <App
         docUrl={account?.rootFolderUrl}
         keyhiveKit={props.keyhiveKit}
-        storeKeyhiveFn={props.keyhiveKit.storeKeyhive}
       />
     </Suspense>
   );

@@ -28,7 +28,6 @@ interface TaskListProps {
   docUrl: AutomergeUrl;
   phonebook: Phonebook;
   keyhive: Keyhive;
-  storeKeyhive: (kh: Keyhive) => void;
   identity: Identity;
   keyhiveUpdateTracker: number;
 }
@@ -37,7 +36,6 @@ export const TaskList = ({
   docUrl,
   phonebook,
   keyhive,
-  storeKeyhive,
   identity,
   keyhiveUpdateTracker,
 }: TaskListProps) => {
@@ -57,7 +55,9 @@ export const TaskList = ({
     const keyhiveDocId = docIdFromAutomergeUrl(docUrl);
 
     try {
+      console.log("BEFORE accessForDoc");
       const access = keyhive.accessForDoc(id, keyhiveDocId);
+      console.log("AFTER accessForDoc");
       if (access) {
         return access.toString() !== "Pull";
       } else {
@@ -78,7 +78,9 @@ export const TaskList = ({
     const keyhiveDocId = docIdFromAutomergeUrl(docUrl);
 
     try {
+      console.log("BEFORE accessForDoc");
       const access = keyhive.accessForDoc(id, keyhiveDocId);
+      console.log("AFTER accessForDoc");
       return access ? access.toString() : undefined;
     } catch (error) {
       console.error("Error checking access level:", error);
@@ -244,7 +246,6 @@ export const TaskList = ({
         docUrl={docUrl}
         phonebook={phonebook}
         keyhive={keyhive}
-        storeKeyhive={storeKeyhive}
         keyhiveUpdateTracker={keyhiveUpdateTracker}
         identity={identity}
         onClose={() => setIsShareModalOpen(false)}

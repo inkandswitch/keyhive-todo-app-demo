@@ -2,22 +2,20 @@ import { useState, useEffect, useMemo } from "react";
 import { AutomergeUrl } from "@automerge/react/slim";
 import { Access, ContactCard, Keyhive } from "@keyhive/keyhive/slim";
 import {
-  accessListForDoc,
   addMemberToDoc,
-  DocAccessList,
   docIdFromAutomergeUrl,
   revokeMemberFromDoc,
   uint8ArrayToHex,
 } from "@automerge/rootstock-identity";
 import { Phonebook } from "../phonebook";
 import { Identity } from "../active";
+import { accessListForDoc, DocAccessList } from "../utilities";
 
 interface ShareModalProps {
   isOpen: boolean;
   docUrl: AutomergeUrl;
   phonebook: Phonebook;
   keyhive: Keyhive;
-  storeKeyhive: (kh: Keyhive) => void;
   keyhiveUpdateTracker: number;
   identity: Identity;
   onClose: () => void;
@@ -28,7 +26,6 @@ export function ShareModal({
   docUrl,
   phonebook,
   keyhive,
-  storeKeyhive,
   keyhiveUpdateTracker,
   identity,
   onClose,
@@ -44,7 +41,9 @@ export function ShareModal({
     const keyhiveDocId = docIdFromAutomergeUrl(docUrl);
 
     try {
+      console.log("BEFORE accessForDoc");
       const access = keyhive.accessForDoc(id, keyhiveDocId);
+      console.log("AFTER accessForDoc");
       return access ? access.toString() : undefined;
     } catch (error) {
       console.error("Error checking access level:", error);
@@ -95,8 +94,12 @@ export function ShareModal({
           console.error("Failed to derive Access");
           return;
         }
+        console.log("BEFORE receiveContactCard");
         const individual = keyhive.receiveContactCard(contactCard);
-        await addMemberToDoc(keyhive, docUrl, individual, access, storeKeyhive);
+        console.log("AFTER receiveContactCard");
+        console.log("BEFORE addMemberToDoc");
+        await addMemberToDoc(keyhive, docUrl, individual, access);
+        console.log("AFTER addMemberToDoc");
 
         setUserIdInput("");
       } catch (error) {
@@ -107,7 +110,9 @@ export function ShareModal({
 
   const handleRemoveUser = async (hexId: string) => {
     try {
-      await revokeMemberFromDoc(keyhive, docUrl, hexId, storeKeyhive);
+      console.log("BEFORE revokeMemberFromDoc");
+      await revokeMemberFromDoc(keyhive, docUrl, hexId);
+      console.log("AFTER revokeMemberFromDoc");
     } catch (error) {
       console.error("Error removing user:", error);
     }
@@ -124,7 +129,9 @@ export function ShareModal({
   const khDocId = docIdFromAutomergeUrl(docUrl);
   let docAccessList: DocAccessList = {};
   if (khDocId) {
+    console.log("BEFORE accessListForDoc");
     docAccessList = accessListForDoc(keyhive, khDocId);
+    console.log("AFTER accessListForDoc");
   } else {
     // FIXME
     console.error("NO DOC!");

@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from "react";
 import {
-  storeActiveKeyPair,
   uint8ArrayToHex,
 } from "@automerge/rootstock-identity";
-import { StorageAdapterInterface } from "@automerge/react/slim";
 import { Phonebook } from "../phonebook";
 import { Identity } from "../active";
 

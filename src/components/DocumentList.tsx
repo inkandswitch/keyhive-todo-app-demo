@@ -19,7 +19,6 @@ interface DocumentListProps {
   onSelectDocument: (docUrl: AutomergeUrl | null) => void;
   syncServer: SyncServer;
   keyhive: Keyhive;
-  storeKeyhive: (kh: Keyhive) => void;
 }
 
 export const DocumentList = ({
@@ -28,8 +27,8 @@ export const DocumentList = ({
   onSelectDocument,
   syncServer,
   keyhive,
-  storeKeyhive,
 }: DocumentListProps) => {
+  console.log(`syncServer temp log: ${syncServer}`)
   const repo = useRepo();
   const [doc, changeDoc] = useDocument<RootDocument>(docUrl, {
     suspense: true,
@@ -37,42 +36,56 @@ export const DocumentList = ({
   const [inputUrl, setInputUrl] = useState("");
 
   useEffect(() => {
+    if (!doc?.taskLists) return;
     changeDoc((d) => {
       if (selectedDocument && !d.taskLists.includes(selectedDocument)) {
         d.taskLists.push(selectedDocument);
       }
     });
-  }, [selectedDocument, changeDoc]);
+  }, [selectedDocument, changeDoc, doc]);
 
   const handleNewDocument = async () => {
     try {
       const membersToAdd: [Individual, AccessString][] = [];
 
-      if (syncServer.individual) {
-        membersToAdd.push([syncServer.individual, "pull"]);
-      } else {
-        console.error("Missing syncServer individual!");
-      }
+      // TODO: Fix sync server individual access - currently causes recursive borrow error
+      // const serverIndividual = getSyncServerIndividual(syncServer, keyhive);
+      // if (serverIndividual) {
+      //   membersToAdd.push([serverIndividual, "pull"]);
+      // } else {
+      //   console.error("Missing syncServer individual!");
+      // }
 
-      const newTaskList = repo.create<TaskList>(initTaskList());
+      console.log("Creating task list")
+      const newTaskList = await repo.create2<TaskList>(initTaskList());
+      console.log("Created task list")
 
       for (const [individual, cap] of membersToAdd) {
+        console.log("About to call Access.tryFromString with cap:", cap);
         const access = Access.tryFromString(cap);
+        console.log("Access.tryFromString returned:", access);
         if (!access) {
           console.error("Failed to derive Access");
           continue;
         }
-        await addMemberToDoc(
-          keyhive,
-          newTaskList.url,
-          individual,
-          access,
-          storeKeyhive,
-        );
+        console.log("BEFORE addMemberToDoc with access:", access);
+        try {
+          await addMemberToDoc(
+            keyhive,
+            newTaskList.url,
+            individual,
+            access,
+          );
+          console.log("AFTER addMemberToDoc");
+        } catch (err) {
+          console.error("addMemberToDoc failed:", err);
+          throw err;
+        }
       }
 
       changeDoc((d) => d.taskLists.push(newTaskList.url));
       onSelectDocument(newTaskList.url);
+      console.log("selected document");
     } catch (error) {
       console.error("Error creating new document: ", error);
     }
@@ -109,7 +122,7 @@ export const DocumentList = ({
       {/* Document list */}
       <div className="flex-1 overflow-y-auto p-2 pb-6">
         <div className="space-y-1 mb-6">
-          {doc.taskLists.map((docUrl) => (
+          {doc?.taskLists?.map((docUrl) => (
             <div
               key={docUrl}
               className={`flex items-center justify-between py-2 px-3 rounded-md cursor-pointer text-sm transition-colors ${
