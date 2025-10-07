@@ -17,6 +17,7 @@ export default defineConfig({
   build: {
     sourcemap: "inline",
     target: "esnext",
+    assetsInlineLimit: 100000, // Inline assets smaller than 100kb as base64
     rollupOptions: {
       external: ["@keyhive/keyhive", "@keyhive/keyhive/slim"],
       input: "./src/main.tsx",

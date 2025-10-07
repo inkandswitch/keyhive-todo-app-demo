@@ -23,6 +23,7 @@ export const plugins = [
           repo: Repo;
           keyhiveKit: KeyhiveKit;
         }) {
+          console.log("Startup");
           const root = ReactDOM.createRoot(element);
 
           root.render(

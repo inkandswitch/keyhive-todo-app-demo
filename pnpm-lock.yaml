@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@automerge/automerge-keyhive-network-adapter':
-        specifier: link:../../../automerge-keyhive-network-adapter
-        version: link:../../../automerge-keyhive-network-adapter
+        specifier: link:../automerge-keyhive-network-adapter
+        version: link:../automerge-keyhive-network-adapter
       '@automerge/automerge-repo':
         specifier: 2.4.0-alpha.2
         version: 2.4.0-alpha.2
@@ -24,8 +24,8 @@ importers:
         specifier: link:../gaios/packages/rootstock-identity
         version: link:../gaios/packages/rootstock-identity
       '@keyhive/keyhive':
-        specifier: 0.0.0-alpha.10
-        version: 0.0.0-alpha.10
+        specifier: 0.0.0-alpha.23
+        version: 0.0.0-alpha.23
       '@noble/hashes':
         specifier: ^2.0.1
         version: 2.0.1
@@ -435,8 +435,8 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
-  '@keyhive/keyhive@0.0.0-alpha.10':
-    resolution: {integrity: sha512-fRA6KQ1df40hJXEj85DgXQ4h/OCedNkXSiyKriEHpO9wpRc78CaDMhKevOlUf9hOOwOw2kL8MhgO3EmwZvLDTg==}
+  '@keyhive/keyhive@0.0.0-alpha.23':
+    resolution: {integrity: sha512-7bA4Aj9LWGWGo1Tai+cOnQAZdvqt45rP2ZMroFOU2wQPY04EY3hrSoxU38eH9MniZWQe6tTdK5i7qcxgBxZNJQ==}
 
   '@noble/ed25519@3.0.0':
     resolution: {integrity: sha512-QyteqMNm0GLqfa5SoYbSC3+Pvykwpn95Zgth4MFVSMKBB75ELl9tX1LAVsN4c3HXOrakHsF2gL4zWDAYCcsnzg==}
@@ -2029,7 +2029,7 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
-  '@keyhive/keyhive@0.0.0-alpha.10': {}
+  '@keyhive/keyhive@0.0.0-alpha.23': {}
 
   '@noble/ed25519@3.0.0': {}
 

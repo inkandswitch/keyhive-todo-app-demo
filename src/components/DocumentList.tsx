@@ -9,7 +9,7 @@ import { initTaskList, TaskList } from "./TaskList";
 import { RootDocument } from "../rootDoc";
 import { useEffect, useState } from "react";
 import { Access, type Individual, type Keyhive } from "@keyhive/keyhive/slim";
-import { addMemberToDoc, SyncServer } from "@automerge/rootstock-identity";
+import { addMemberToDoc, getSyncServerIndividual, SyncServer } from "@automerge/automerge-keyhive-network-adapter";
 
 type AccessString = "admin" | "write" | "read" | "pull";
 
@@ -28,7 +28,6 @@ export const DocumentList = ({
   syncServer,
   keyhive,
 }: DocumentListProps) => {
-  console.log(`syncServer temp log: ${syncServer}`)
   const repo = useRepo();
   const [doc, changeDoc] = useDocument<RootDocument>(docUrl, {
     suspense: true,
@@ -45,30 +44,29 @@ export const DocumentList = ({
   }, [selectedDocument, changeDoc, doc]);
 
   const handleNewDocument = async () => {
+    console.log("handleNewDocument");
     try {
       const membersToAdd: [Individual, AccessString][] = [];
 
-      // TODO: Fix sync server individual access - currently causes recursive borrow error
-      // const serverIndividual = getSyncServerIndividual(syncServer, keyhive);
-      // if (serverIndividual) {
-      //   membersToAdd.push([serverIndividual, "pull"]);
-      // } else {
-      //   console.error("Missing syncServer individual!");
-      // }
+      console.log("calling getSyncServerIndividual");
+      const serverIndividual = getSyncServerIndividual(syncServer, keyhive);
+      if (serverIndividual) {
+        membersToAdd.push([serverIndividual, "pull"]);
+      } else {
+        console.error("Missing syncServer individual!");
+      }
 
-      console.log("Creating task list")
+      console.log("Calling repo.create2()");
       const newTaskList = await repo.create2<TaskList>(initTaskList());
-      console.log("Created task list")
 
       for (const [individual, cap] of membersToAdd) {
-        console.log("About to call Access.tryFromString with cap:", cap);
+        console.log("--getting access from string");
         const access = Access.tryFromString(cap);
-        console.log("Access.tryFromString returned:", access);
         if (!access) {
           console.error("Failed to derive Access");
           continue;
         }
-        console.log("BEFORE addMemberToDoc with access:", access);
+        console.log(`calling addMemberToDoc with access: ${access.toString()}`);
         try {
           await addMemberToDoc(
             keyhive,
@@ -76,18 +74,19 @@ export const DocumentList = ({
             individual,
             access,
           );
-          console.log("AFTER addMemberToDoc");
+          console.log("called addMemberToDoc");
         } catch (err) {
-          console.error("addMemberToDoc failed:", err);
+          console.error(`addMemberToDoc failed: ${err}`);
           throw err;
         }
       }
 
-      changeDoc((d) => d.taskLists.push(newTaskList.url));
+      changeDoc((d) => {
+        d.taskLists.push(newTaskList.url);
+      });
       onSelectDocument(newTaskList.url);
-      console.log("selected document");
     } catch (error) {
-      console.error("Error creating new document: ", error);
+      console.error(`Error creating new document: ${error}`);
     }
   };
 

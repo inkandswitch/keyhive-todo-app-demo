@@ -1,4 +1,4 @@
-import { Active } from "@automerge/rootstock-identity";
+import { Active } from "@automerge/automerge-keyhive-network-adapter";
 import { Contact } from "./phonebook";
 
 export type Identity = {

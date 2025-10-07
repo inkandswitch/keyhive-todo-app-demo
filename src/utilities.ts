@@ -1,8 +1,8 @@
-import { uint8ArrayToHex } from "@automerge/rootstock-identity";
 import {
   DocumentId as KeyhiveDocumentId,
   Keyhive,
 } from "@keyhive/keyhive";
+import { uint8ArrayToHex } from "@automerge/automerge-keyhive-network-adapter";
 
 // Store access as strings instead of WASM objects
 export type DocAccessList = Record<string, string>;

@@ -1,4 +1,5 @@
 import { Identity } from "../active";
+import blankAvatarImg from "../assets/blankavatar.jpeg";
 
 interface AvatarIconProps {
   onClick: () => void;
@@ -21,7 +22,7 @@ export function AvatarIcon({ onClick, identityState }: AvatarIconProps) {
       aria-label="User profile"
     >
       <img
-        src={avatarUrl || "/blankavatar.jpeg"}
+        src={avatarUrl || blankAvatarImg}
         alt={identityState.contact.name || "User avatar"}
         className="w-full h-full rounded-full object-cover"
       />

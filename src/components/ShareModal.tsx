@@ -1,23 +1,19 @@
 import { useState, useEffect, useMemo } from "react";
 import { AutomergeUrl } from "@automerge/react/slim";
 import { Access, ContactCard, Keyhive } from "@keyhive/keyhive/slim";
-import {
-  addMemberToDoc,
-  docIdFromAutomergeUrl,
-  revokeMemberFromDoc,
-  uint8ArrayToHex,
-} from "@automerge/rootstock-identity";
 import { Phonebook } from "../phonebook";
 import { Identity } from "../active";
 import { accessListForDoc, DocAccessList } from "../utilities";
+import { addMemberToDoc, docIdFromAutomergeUrl, revokeMemberFromDoc, uint8ArrayToHex } from "@automerge/automerge-keyhive-network-adapter";
+import blankAvatarImg from "../assets/blankavatar.jpeg";
 
 interface ShareModalProps {
   isOpen: boolean;
   docUrl: AutomergeUrl;
   phonebook: Phonebook;
   keyhive: Keyhive;
-  keyhiveUpdateTracker: number;
   identity: Identity;
+  keyhiveUpdateTracker: number;
   onClose: () => void;
 }
 
@@ -26,8 +22,8 @@ export function ShareModal({
   docUrl,
   phonebook,
   keyhive,
-  keyhiveUpdateTracker,
   identity,
+  keyhiveUpdateTracker,
   onClose,
 }: ShareModalProps) {
   const [userIdInput, setUserIdInput] = useState("");
@@ -38,6 +34,7 @@ export function ShareModal({
     // FIXME: This should probably be an error
     if (!id) return undefined;
 
+    console.log("ShareModal currentUserAccess memo: calling docIdFromAutomergeUrl");
     const keyhiveDocId = docIdFromAutomergeUrl(docUrl);
 
     try {
@@ -50,7 +47,7 @@ export function ShareModal({
       return undefined;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [keyhiveUpdateTracker, identity.active.individual.id, docUrl, keyhive]);
+  }, [keyhiveUpdateTracker, identity.active.individual.id, docUrl]);
 
   const accessLevels = ["Pull", "Read", "Write", "Admin"];
   // You can share at your access level and below
@@ -94,9 +91,9 @@ export function ShareModal({
           console.error("Failed to derive Access");
           return;
         }
-        console.log("BEFORE receiveContactCard");
+        console.log("BEFORE receiveContactCard (ShareModal)");
         const individual = keyhive.receiveContactCard(contactCard);
-        console.log("AFTER receiveContactCard");
+        console.log("AFTER receiveContactCard (ShareModal)");
         console.log("BEFORE addMemberToDoc");
         await addMemberToDoc(keyhive, docUrl, individual, access);
         console.log("AFTER addMemberToDoc");
@@ -126,6 +123,7 @@ export function ShareModal({
 
   if (!isOpen) return null;
 
+  console.log("ShareModal main: calling docIdFromAutomergeUrl");
   const khDocId = docIdFromAutomergeUrl(docUrl);
   let docAccessList: DocAccessList = {};
   if (khDocId) {
@@ -240,7 +238,7 @@ export function ShareModal({
                       ? URL.createObjectURL(
                           new Blob([new Uint8Array(contact.avatar)]),
                         )
-                      : "/blankavatar.jpeg";
+                      : blankAvatarImg;
 
                     return (
                       <div

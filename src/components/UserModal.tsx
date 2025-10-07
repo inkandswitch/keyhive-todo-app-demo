@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
-import {
-  uint8ArrayToHex,
-} from "@automerge/rootstock-identity";
 import { Phonebook } from "../phonebook";
 import { Identity } from "../active";
+import blankAvatarImg from "../assets/blankavatar.jpeg";
+import { uint8ArrayToHex } from "@automerge/automerge-keyhive-network-adapter";
 
 interface UserModalProps {
   isOpen: boolean;
@@ -166,7 +165,7 @@ export function UserModal({
             <div className="flex flex-col items-center space-y-4">
               <div className="relative">
                 <img
-                  src={avatarPreview || "/blankavatar.jpeg"}
+                  src={avatarPreview || blankAvatarImg}
                   alt="Avatar preview"
                   className="w-20 h-20 rounded-full object-cover border-4 border-border"
                 />

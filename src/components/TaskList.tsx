@@ -1,10 +1,10 @@
 import { AutomergeUrl, useDocument, updateText } from "@automerge/react/slim";
 import { ShareModal } from "./ShareModal";
 import { useState, useMemo } from "react";
-import { docIdFromAutomergeUrl } from "@automerge/rootstock-identity";
 import { Keyhive } from "@keyhive/keyhive/slim";
 import { Phonebook } from "../phonebook";
 import { Identity } from "../active";
+import { docIdFromAutomergeUrl } from "@automerge/automerge-keyhive-network-adapter";
 
 export interface Task {
   title: string;
@@ -52,6 +52,7 @@ export const TaskList = ({
     // FIXME: This should probably be an error
     if (!id) return false;
 
+    console.log("ShareModal: calling docIdFromAutomergeUrl");
     const keyhiveDocId = docIdFromAutomergeUrl(docUrl);
 
     try {
@@ -68,7 +69,7 @@ export const TaskList = ({
       return false;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [keyhiveUpdateTracker, identity.active.individual.id, docUrl, keyhive]);
+  }, [keyhiveUpdateTracker, identity.active.individual.id, docUrl]);
 
   const userAccess = useMemo(() => {
     const id = identity.active.individual.id;
@@ -87,7 +88,7 @@ export const TaskList = ({
       return undefined;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [keyhiveUpdateTracker, identity.active.individual.id, docUrl, keyhive]);
+  }, [keyhiveUpdateTracker, identity.active.individual.id, docUrl]);
 
   const canEdit = userAccess === "Write" || userAccess === "Admin";
   const canRead =
@@ -246,8 +247,8 @@ export const TaskList = ({
         docUrl={docUrl}
         phonebook={phonebook}
         keyhive={keyhive}
-        keyhiveUpdateTracker={keyhiveUpdateTracker}
         identity={identity}
+        keyhiveUpdateTracker={keyhiveUpdateTracker}
         onClose={() => setIsShareModalOpen(false)}
       />
     </div>

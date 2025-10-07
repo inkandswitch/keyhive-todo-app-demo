@@ -1,4 +1,5 @@
-import keyhiveLogo from "/honeybee.png";
+import keyhiveLogo from "../assets/honeybee.png";
+import halAvatarUrl from "../assets/HAL-9000.webp";
 import {
   isValidAutomergeUrl,
   type AutomergeUrl,
@@ -9,11 +10,11 @@ import { DocumentList } from "./DocumentList";
 import { useHash } from "react-use";
 import { AvatarIcon } from "./AvatarIcon";
 import { UserModal } from "./UserModal";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { KeyhiveKit } from "@automerge/rootstock-identity";
 import { Phonebook } from "../phonebook";
 import { Identity } from "../active";
-import { Event } from "@keyhive/keyhive";
+import { getSyncServerIndividual, uint8ArrayToHex } from "@automerge/automerge-keyhive-network-adapter";
 
 type AppProps = {
   docUrl: AutomergeUrl;
@@ -21,11 +22,19 @@ type AppProps = {
 };
 
 function App({ docUrl, keyhiveKit }: AppProps) {
-  const [keyhiveUpdateTracker, setKeyhiveUpdateTracker] = useState(0);
+  const [keyhiveUpdateTracker, _setKeyhiveUpdateTracker] = useState(0);
 
-  keyhiveKit.keyhiveEmitter.on("update", (_event: Event) => {
-    setKeyhiveUpdateTracker((v) => v + 1);
-  });
+  // FIXME: Watch for keyhive updates
+  // useEffect(() => {
+  //   const handler = () => {
+  //     setKeyhiveUpdateTracker((v) => v + 1);
+  //   };
+
+  //   keyhiveKit.keyhiveEmitter.on("update", handler);
+  //   return () => {
+  //     keyhiveKit.keyhiveEmitter.off("update", handler);
+  //   };
+  // }, [keyhiveKit.keyhiveEmitter]);
 
   const phonebookUrl = "automerge:4LC8WQxBbLH92x9crDq5HwhUYopU" as AutomergeUrl;
   const identity: Identity = {
@@ -39,6 +48,49 @@ function App({ docUrl, keyhiveKit }: AppProps) {
   const [phonebook, changePhonebook] = useDocument<Phonebook>(phonebookUrl, {
     suspense: true,
   });
+
+  // Load user's saved info from phonebook on startup
+  useEffect(() => {
+    if (phonebook && identityState.active.individual) {
+      const userHexId = uint8ArrayToHex(identityState.active.individual.id.toBytes());
+      const savedContact = phonebook[userHexId];
+      if (savedContact) {
+        setIdentityState((prev) => ({
+          ...prev,
+          contact: {
+            peerId: prev.contact.peerId,
+            name: savedContact.name,
+            avatar: savedContact.avatar,
+          },
+        }));
+      }
+    }
+  }, [phonebook, identityState.active.individual]);
+
+  // Add sync server to phonebook if not already there
+  useEffect(() => {
+    if (phonebook && keyhiveKit.syncServer) {
+      const serverIndividual = getSyncServerIndividual(keyhiveKit.syncServer, keyhiveKit.keyhive);
+      if (serverIndividual) {
+        const serverHexId = uint8ArrayToHex(serverIndividual.id.toBytes());
+        if (!phonebook[serverHexId]) {
+          // Load HAL avatar and add to phonebook
+          fetch(halAvatarUrl)
+            .then((res) => res.arrayBuffer())
+            .then((buffer) => {
+              changePhonebook((doc) => {
+                doc[serverHexId] = {
+                  peerId: keyhiveKit.syncServer.peerId,
+                  name: "Demo Sync Server",
+                  avatar: new Uint8Array(buffer),
+                };
+              });
+            });
+        }
+      }
+    }
+  }, [phonebook, keyhiveKit.syncServer, keyhiveKit.keyhive, changePhonebook]);
+
   const [hash, setHash] = useHash();
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   // Remove the leading '#'
@@ -72,7 +124,11 @@ function App({ docUrl, keyhiveKit }: AppProps) {
         {/* Header */}
         <header className="p-6 border-b border-foreground/10 bg-muted flex justify-center relative">
           <h1 className="text-2xl font-semibold flex items-center text-foreground">
-            <img src={keyhiveLogo} alt="Keyhive logo" id="keyhive-logo" />
+            <img
+              src={keyhiveLogo}
+              alt="Keyhive logo"
+              id="keyhive-logo"
+            />
             Keyhive Demo
           </h1>
           <div className="absolute right-6 top-1/2 -translate-y-1/2">

@@ -82,7 +82,7 @@ export async function getOrCreatePhonebook(
 // }
 
 async function getServerAvatar(): Promise<Uint8Array> {
-  const avatarFile = await fetch("/HAL-9000.webp");
+  const avatarFile = await fetch(new URL("./assets/HAL-9000.webp", import.meta.url).href);
   const arrayBuffer = await avatarFile.arrayBuffer();
   return new Uint8Array(arrayBuffer);
 }
