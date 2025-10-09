@@ -9,8 +9,8 @@ interface UserModalProps {
   onClose: () => void;
   identityState: Identity;
   setIdentityState: React.Dispatch<React.SetStateAction<Identity>>;
-  phonebook: Phonebook;
-  changePhonebook: (updater: (doc: Phonebook) => void | Error) => void;
+  phonebook: Phonebook | undefined;
+  changePhonebook: ((updater: (doc: Phonebook) => void | Error) => void) | undefined;
   currentName?: string;
   currentAvatarUrl?: string;
 }
@@ -88,24 +88,26 @@ export function UserModal({
         },
       };
 
-      changePhonebook((doc: Phonebook) => {
-        const individual = newIdentity.active.individual;
-        if (individual) {
-          const hexId = uint8ArrayToHex(individual.id.toBytes());
-          if (!doc[hexId]) {
-            doc[hexId] = {
-              peerId: newIdentity.contact.peerId,
-              name: newIdentity.contact.name,
-              avatar: newIdentity.contact.avatar || null,
-            };
+      if (changePhonebook) {
+        changePhonebook((doc: Phonebook) => {
+          const individual = newIdentity.active.individual;
+          if (individual) {
+            const hexId = uint8ArrayToHex(individual.id.toBytes());
+            if (!doc[hexId]) {
+              doc[hexId] = {
+                peerId: newIdentity.contact.peerId,
+                name: newIdentity.contact.name,
+                avatar: newIdentity.contact.avatar || null,
+              };
+            } else {
+              doc[hexId].name = newIdentity.contact.name;
+              doc[hexId].avatar = newIdentity.contact.avatar || null;
+            }
           } else {
-            doc[hexId].name = newIdentity.contact.name;
-            doc[hexId].avatar = newIdentity.contact.avatar || null;
+            return new Error("Individual should have been present for active");
           }
-        } else {
-          return new Error("Individual should have been present for active");
-        }
-      });
+        });
+      }
       return newIdentity;
     });
 

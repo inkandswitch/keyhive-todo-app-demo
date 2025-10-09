@@ -1,6 +1,6 @@
 import { AutomergeUrl, useDocument, updateText } from "@automerge/react/slim";
 import { ShareModal } from "./ShareModal";
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Keyhive } from "@keyhive/keyhive/slim";
 import { Phonebook } from "../phonebook";
 import { Identity } from "../active";
@@ -26,7 +26,7 @@ export function initTaskList() {
 
 interface TaskListProps {
   docUrl: AutomergeUrl;
-  phonebook: Phonebook;
+  phonebook: Phonebook | undefined;
   keyhive: Keyhive;
   identity: Identity;
   keyhiveUpdateTracker: number;
@@ -40,55 +40,47 @@ export const TaskList = ({
   keyhiveUpdateTracker,
 }: TaskListProps) => {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [shouldShowShareButton, setShouldShowShareButton] = useState(false);
+  const [userAccess, setUserAccess] = useState<string | undefined>(undefined);
+
   const [doc, changeDoc] = useDocument<TaskList>(docUrl, {
     // This hooks the `useDocument` into reacts suspense infrastructure so the whole component
     // only renders once the document is loaded
     suspense: true,
   });
 
-  // Check if greater than pull access. Recalculate when keyhive updates.
-  const shouldShowShareButton = useMemo(() => {
-    const id = identity.active.individual.id;
-    // FIXME: This should probably be an error
-    if (!id) return false;
-
-    console.log("ShareModal: calling docIdFromAutomergeUrl");
-    const keyhiveDocId = docIdFromAutomergeUrl(docUrl);
-
-    try {
-      console.log("BEFORE accessForDoc");
-      const access = keyhive.accessForDoc(id, keyhiveDocId);
-      console.log("AFTER accessForDoc");
-      if (access) {
-        return access.toString() !== "Pull";
-      } else {
-        return false;
+  // Check access level and update state. Recalculate when keyhive updates.
+  useEffect(() => {
+    async function fetchAccess() {
+      const id = identity.active.individual.id;
+      // FIXME: This should probably be an error
+      if (!id) {
+        setShouldShowShareButton(false);
+        setUserAccess(undefined);
+        return;
       }
-    } catch (error) {
-      console.error(`Error checking access level: ${error}`);
-      return false;
+
+      const keyhiveDocId = docIdFromAutomergeUrl(docUrl);
+
+      try {
+        const access = await keyhive.accessForDoc(id, keyhiveDocId);
+        if (access) {
+          const accessString = access.toString();
+          setUserAccess(accessString);
+          setShouldShowShareButton(accessString !== "Pull");
+        } else {
+          setUserAccess(undefined);
+          setShouldShowShareButton(false);
+        }
+      } catch (error) {
+        console.error(`[Demo] Error checking access level: ${error}`);
+        setUserAccess(undefined);
+        setShouldShowShareButton(false);
+      }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [keyhiveUpdateTracker, identity.active.individual.id, docUrl]);
 
-  const userAccess = useMemo(() => {
-    const id = identity.active.individual.id;
-    // FIXME: This should probably be an error
-    if (!id) return undefined;
-
-    const keyhiveDocId = docIdFromAutomergeUrl(docUrl);
-
-    try {
-      console.log("BEFORE accessForDoc");
-      const access = keyhive.accessForDoc(id, keyhiveDocId);
-      console.log("AFTER accessForDoc");
-      return access ? access.toString() : undefined;
-    } catch (error) {
-      console.error("Error checking access level:", error);
-      return undefined;
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [keyhiveUpdateTracker, identity.active.individual.id, docUrl]);
+    fetchAccess();
+  }, [keyhiveUpdateTracker, identity.active.individual.id, docUrl, keyhive]);
 
   const canEdit = userAccess === "Write" || userAccess === "Admin";
   const canRead =

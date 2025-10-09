@@ -1,7 +1,7 @@
 import ReactDOM from "react-dom/client";
 import "./index.css";
 import { Repo, DocHandle } from "@automerge/react/slim";
-import { KeyhiveKit } from "@automerge/rootstock-identity";
+import { KeyhiveKit } from "@automerge/identity";
 import Frame, { TemporaryAccountInterface } from "./components/Frame.tsx";
 
 export const plugins = [
@@ -23,7 +23,7 @@ export const plugins = [
           repo: Repo;
           keyhiveKit: KeyhiveKit;
         }) {
-          console.log("Startup");
+          console.log("[Demo] Startup");
           const root = ReactDOM.createRoot(element);
 
           root.render(

@@ -11,10 +11,11 @@ import { useHash } from "react-use";
 import { AvatarIcon } from "./AvatarIcon";
 import { UserModal } from "./UserModal";
 import { useState, useEffect } from "react";
-import { KeyhiveKit } from "@automerge/rootstock-identity";
+import { KeyhiveKit } from "@automerge/identity";
 import { Phonebook } from "../phonebook";
 import { Identity } from "../active";
-import { getSyncServerIndividual, uint8ArrayToHex } from "@automerge/automerge-keyhive-network-adapter";
+import { uint8ArrayToHex } from "@automerge/automerge-keyhive-network-adapter";
+import { ContactCard } from "@keyhive/keyhive/slim";
 
 type AppProps = {
   docUrl: AutomergeUrl;
@@ -22,19 +23,19 @@ type AppProps = {
 };
 
 function App({ docUrl, keyhiveKit }: AppProps) {
-  const [keyhiveUpdateTracker, _setKeyhiveUpdateTracker] = useState(0);
+  const [keyhiveUpdateTracker, setKeyhiveUpdateTracker] = useState(0);
 
-  // FIXME: Watch for keyhive updates
-  // useEffect(() => {
-  //   const handler = () => {
-  //     setKeyhiveUpdateTracker((v) => v + 1);
-  //   };
+  // Watch for keyhive updates
+  useEffect(() => {
+    const handler = () => {
+      setKeyhiveUpdateTracker((v) => v + 1);
+    };
 
-  //   keyhiveKit.keyhiveEmitter.on("update", handler);
-  //   return () => {
-  //     keyhiveKit.keyhiveEmitter.off("update", handler);
-  //   };
-  // }, [keyhiveKit.keyhiveEmitter]);
+    keyhiveKit.emitter.on("update", handler);
+    return () => {
+      keyhiveKit.emitter.off("update", handler);
+    };
+  }, [keyhiveKit.emitter]);
 
   const phonebookUrl = "automerge:4LC8WQxBbLH92x9crDq5HwhUYopU" as AutomergeUrl;
   const identity: Identity = {
@@ -45,9 +46,7 @@ function App({ docUrl, keyhiveKit }: AppProps) {
     },
   };
   const [identityState, setIdentityState] = useState(identity);
-  const [phonebook, changePhonebook] = useDocument<Phonebook>(phonebookUrl, {
-    suspense: true,
-  });
+  const [phonebook, changePhonebook] = useDocument<Phonebook>(phonebookUrl);
 
   // Load user's saved info from phonebook on startup
   useEffect(() => {
@@ -70,9 +69,10 @@ function App({ docUrl, keyhiveKit }: AppProps) {
   // Add sync server to phonebook if not already there
   useEffect(() => {
     if (phonebook && keyhiveKit.syncServer) {
-      const serverIndividual = getSyncServerIndividual(keyhiveKit.syncServer, keyhiveKit.keyhive);
-      if (serverIndividual) {
-        const serverHexId = uint8ArrayToHex(serverIndividual.id.toBytes());
+      const serverContactCard = ContactCard.fromJson(keyhiveKit.syncServer.contactCard);
+      // const serverIndividual = getSyncServerIndividual(keyhiveKit.syncServer, keyhiveKit.keyhive);
+      if (serverContactCard) {
+        const serverHexId = uint8ArrayToHex(serverContactCard.id.bytes);
         if (!phonebook[serverHexId]) {
           // Load HAL avatar and add to phonebook
           fetch(halAvatarUrl)

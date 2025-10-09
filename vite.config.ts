@@ -5,6 +5,7 @@ import wasm from "vite-plugin-wasm";
 import cssInjectedByJsPlugin from "vite-plugin-css-injected-by-js";
 
 export default defineConfig({
+  base: "./",
   server: {
     port: 5557,
     watch: {
@@ -31,7 +32,11 @@ export default defineConfig({
     },
   },
 
-  plugins: [wasm(), react(), cssInjectedByJsPlugin()],
+  plugins: [
+    wasm(),
+    react(),
+    cssInjectedByJsPlugin(),
+  ],
 
   worker: {
     format: "es",

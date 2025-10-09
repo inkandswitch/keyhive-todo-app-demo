@@ -1,20 +1,18 @@
 import {
   DocumentId as KeyhiveDocumentId,
   Keyhive,
-} from "@keyhive/keyhive";
+} from "@keyhive/keyhive/slim";
 import { uint8ArrayToHex } from "@automerge/automerge-keyhive-network-adapter";
 
 // Store access as strings instead of WASM objects
 export type DocAccessList = Record<string, string>;
 
-export function accessListForDoc(
+export async function accessListForDoc(
   keyhive: Keyhive,
   targetDocId: KeyhiveDocumentId,
-): DocAccessList {
+): Promise<DocAccessList> {
   const accessList: DocAccessList = {};
-  console.log("BEFORE docMemberCapabilities");
-  const members = keyhive.docMemberCapabilities(targetDocId);
-  console.log("AFTER docMemberCapabilities");
+  const members = await keyhive.docMemberCapabilities(targetDocId);
   members.forEach((capability) => {
     const hexId = uint8ArrayToHex(capability.who.id.toBytes());
     // Convert WASM Access object to string immediately

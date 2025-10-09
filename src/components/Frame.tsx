@@ -6,7 +6,7 @@ import {
   useDocument,
   useRepo,
 } from "@automerge/react/slim";
-import { KeyhiveKit } from "@automerge/rootstock-identity";
+import { KeyhiveKit } from "@automerge/identity";
 import App from "./App";
 import { Suspense, useEffect } from "react";
 import { RootDocument } from "../rootDoc";
@@ -43,9 +43,9 @@ function FrameInner(props: {
 
   useEffect(() => {
     if (!account?.rootFolderUrl) {
-      console.log("No rootFolderUrl found, creating root document");
+      console.log("[Demo] No rootFolderUrl found, creating root document");
       const handle = repo.create<RootDocument>({ taskLists: [] });
-      console.log("Created root document:", handle.url);
+      console.log("[Demo] Created root document:", handle.url);
       changeAccount((doc) => {
         doc.rootFolderUrl = handle.url;
       });
@@ -57,7 +57,7 @@ function FrameInner(props: {
   }
 
   return (
-    <Suspense>
+    <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
       <App
         docUrl={account.rootFolderUrl}
         keyhiveKit={props.keyhiveKit}

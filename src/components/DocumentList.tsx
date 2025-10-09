@@ -8,8 +8,8 @@ import {
 import { initTaskList, TaskList } from "./TaskList";
 import { RootDocument } from "../rootDoc";
 import { useEffect, useState } from "react";
-import { Access, type Individual, type Keyhive } from "@keyhive/keyhive/slim";
-import { addMemberToDoc, getSyncServerIndividual, SyncServer } from "@automerge/automerge-keyhive-network-adapter";
+import { Access, ContactCard, type Keyhive } from "@keyhive/keyhive/slim";
+import { addMemberToDoc, SyncServer } from "@automerge/automerge-keyhive-network-adapter";
 
 type AccessString = "admin" | "write" | "read" | "pull";
 
@@ -44,39 +44,36 @@ export const DocumentList = ({
   }, [selectedDocument, changeDoc, doc]);
 
   const handleNewDocument = async () => {
-    console.log("handleNewDocument");
+    console.trace("[Demo] Calling handleNewDocument");
     try {
-      const membersToAdd: [Individual, AccessString][] = [];
+      const membersToAdd: [ContactCard, AccessString][] = [];
 
-      console.log("calling getSyncServerIndividual");
-      const serverIndividual = getSyncServerIndividual(syncServer, keyhive);
-      if (serverIndividual) {
-        membersToAdd.push([serverIndividual, "pull"]);
+      const serverContactCard = ContactCard.fromJson(syncServer.contactCard);
+      if (serverContactCard) {
+        membersToAdd.push([serverContactCard, "pull"]);
       } else {
-        console.error("Missing syncServer individual!");
+        console.error("[Demo] Missing syncServer individual!");
       }
 
-      console.log("Calling repo.create2()");
       const newTaskList = await repo.create2<TaskList>(initTaskList());
 
-      for (const [individual, cap] of membersToAdd) {
-        console.log("--getting access from string");
+      for (const [contactCard, cap] of membersToAdd) {
         const access = Access.tryFromString(cap);
         if (!access) {
-          console.error("Failed to derive Access");
+          console.error("[Demo] Failed to derive Access");
           continue;
         }
-        console.log(`calling addMemberToDoc with access: ${access.toString()}`);
+        console.trace(`[Demo] calling addMemberToDoc with access: ${access.toString()}`);
         try {
           await addMemberToDoc(
             keyhive,
             newTaskList.url,
-            individual,
+            contactCard,
             access,
           );
-          console.log("called addMemberToDoc");
+          console.trace("[Demo] called addMemberToDoc");
         } catch (err) {
-          console.error(`addMemberToDoc failed: ${err}`);
+          console.error(`[Demo] addMemberToDoc failed: ${err}`);
           throw err;
         }
       }
@@ -86,7 +83,7 @@ export const DocumentList = ({
       });
       onSelectDocument(newTaskList.url);
     } catch (error) {
-      console.error(`Error creating new document: ${error}`);
+      console.error(`[Demo] Error creating new document: ${error}`);
     }
   };
 

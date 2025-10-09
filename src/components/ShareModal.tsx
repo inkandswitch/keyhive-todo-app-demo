@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { AutomergeUrl } from "@automerge/react/slim";
 import { Access, ContactCard, Keyhive } from "@keyhive/keyhive/slim";
 import { Phonebook } from "../phonebook";
@@ -10,7 +10,7 @@ import blankAvatarImg from "../assets/blankavatar.jpeg";
 interface ShareModalProps {
   isOpen: boolean;
   docUrl: AutomergeUrl;
-  phonebook: Phonebook;
+  phonebook: Phonebook | undefined;
   keyhive: Keyhive;
   identity: Identity;
   keyhiveUpdateTracker: number;
@@ -28,26 +28,34 @@ export function ShareModal({
 }: ShareModalProps) {
   const [userIdInput, setUserIdInput] = useState("");
   const [selectedAccessLevel, setSelectedAccessLevel] = useState("Write");
+  const [docAccessList, setDocAccessList] = useState<DocAccessList>({});
+  const [isLoadingAccessList, setIsLoadingAccessList] = useState(true);
+  const [currentUserAccess, setCurrentUserAccess] = useState<string | undefined>(undefined);
 
-  const currentUserAccess = useMemo(() => {
-    const id = identity.active.individual.id;
-    // FIXME: This should probably be an error
-    if (!id) return undefined;
+  useEffect(() => {
+    async function fetchCurrentUserAccess() {
+      const id = identity.active.individual.id;
+      // FIXME: This should probably be an error
+      if (!id) {
+        setCurrentUserAccess(undefined);
+        return;
+      }
 
-    console.log("ShareModal currentUserAccess memo: calling docIdFromAutomergeUrl");
-    const keyhiveDocId = docIdFromAutomergeUrl(docUrl);
+      const keyhiveDocId = docIdFromAutomergeUrl(docUrl);
 
-    try {
-      console.log("BEFORE accessForDoc");
-      const access = keyhive.accessForDoc(id, keyhiveDocId);
-      console.log("AFTER accessForDoc");
-      return access ? access.toString() : undefined;
-    } catch (error) {
-      console.error("Error checking access level:", error);
-      return undefined;
+      try {
+        const access = await keyhive.accessForDoc(id, keyhiveDocId);
+        setCurrentUserAccess(access ? access.toString() : undefined);
+      } catch (error) {
+        console.error("[Demo] Error checking access level:", error);
+        setCurrentUserAccess(undefined);
+      }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [keyhiveUpdateTracker, identity.active.individual.id, docUrl]);
+
+    if (isOpen) {
+      fetchCurrentUserAccess();
+    }
+  }, [keyhiveUpdateTracker, identity.active.individual.id, docUrl, keyhive, isOpen]);
 
   const accessLevels = ["Pull", "Read", "Write", "Admin"];
   // You can share at your access level and below
@@ -57,9 +65,35 @@ export function ShareModal({
       )
     : [];
 
+  // Reset selectedAccessLevel when sharingOptions changes
+  useEffect(() => {
+    if (sharingOptions.length > 0 && !sharingOptions.includes(selectedAccessLevel)) {
+      setSelectedAccessLevel(sharingOptions[sharingOptions.length - 1]);
+    }
+  }, [sharingOptions, selectedAccessLevel]);
+
   const currentUserHexId = identity.active.individual.id
     ? uint8ArrayToHex(identity.active.individual.id.toBytes())
     : null;
+
+  useEffect(() => {
+    async function fetchAccessList() {
+      setIsLoadingAccessList(true);
+      const khDocId = docIdFromAutomergeUrl(docUrl);
+      if (khDocId) {
+        const accessList = await accessListForDoc(keyhive, khDocId);
+        setDocAccessList(accessList);
+      } else {
+        console.error("[Demo] NO DOC!");
+        setDocAccessList({});
+      }
+      setIsLoadingAccessList(false);
+    }
+
+    if (isOpen) {
+      fetchAccessList();
+    }
+  }, [keyhiveUpdateTracker, docUrl, keyhive, isOpen]);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -86,32 +120,29 @@ export function ShareModal({
         const contactCardString = userIdInput.trim();
         // Validate JSON by parsing it
         const contactCard = ContactCard.fromJson(contactCardString);
+
         const access = Access.tryFromString(selectedAccessLevel.toLowerCase());
+
         if (!access) {
-          console.error("Failed to derive Access");
+          console.error("[Demo] Failed to derive Access from:", selectedAccessLevel);
           return;
         }
-        console.log("BEFORE receiveContactCard (ShareModal)");
-        const individual = keyhive.receiveContactCard(contactCard);
-        console.log("AFTER receiveContactCard (ShareModal)");
-        console.log("BEFORE addMemberToDoc");
-        await addMemberToDoc(keyhive, docUrl, individual, access);
-        console.log("AFTER addMemberToDoc");
+
+        keyhive.receiveContactCard(contactCard);
+        await addMemberToDoc(keyhive, docUrl, contactCard, access);
 
         setUserIdInput("");
       } catch (error) {
-        console.error("Error adding user:", error);
+        console.error("[Demo] Error adding user:", error);
       }
     }
   };
 
   const handleRemoveUser = async (hexId: string) => {
     try {
-      console.log("BEFORE revokeMemberFromDoc");
       await revokeMemberFromDoc(keyhive, docUrl, hexId);
-      console.log("AFTER revokeMemberFromDoc");
     } catch (error) {
-      console.error("Error removing user:", error);
+      console.error("[Demo] Error removing user:", error);
     }
   };
 
@@ -122,18 +153,6 @@ export function ShareModal({
   };
 
   if (!isOpen) return null;
-
-  console.log("ShareModal main: calling docIdFromAutomergeUrl");
-  const khDocId = docIdFromAutomergeUrl(docUrl);
-  let docAccessList: DocAccessList = {};
-  if (khDocId) {
-    console.log("BEFORE accessListForDoc");
-    docAccessList = accessListForDoc(keyhive, khDocId);
-    console.log("AFTER accessListForDoc");
-  } else {
-    // FIXME
-    console.error("NO DOC!");
-  }
 
   return (
     <div
@@ -212,15 +231,19 @@ export function ShareModal({
               Current Access
             </h3>
             <div className="space-y-3">
-              {Object.keys(docAccessList).length === 0 ? (
+              {isLoadingAccessList ? (
+                <p className="text-sm text-muted-foreground italic">
+                  Loading...
+                </p>
+              ) : Object.keys(docAccessList).length === 0 ? (
                 <p className="text-sm text-muted-foreground italic">
                   No users have access yet
                 </p>
               ) : (
                 Object.entries(docAccessList)
                   .sort(([hexIdA], [hexIdB]) => {
-                    const contactA = phonebook[hexIdA];
-                    const contactB = phonebook[hexIdB];
+                    const contactA = phonebook?.[hexIdA];
+                    const contactB = phonebook?.[hexIdB];
 
                     // Use name if available, otherwise use hex ID for sorting
                     const nameA =
@@ -231,7 +254,7 @@ export function ShareModal({
                     return nameA.localeCompare(nameB);
                   })
                   .map(([hexId, access], index) => {
-                    const contact = phonebook[hexId];
+                    const contact = phonebook?.[hexId];
                     const displayName =
                       contact?.name || `0x${hexId.slice(0, 12)}...`;
                     const avatarSrc = contact?.avatar

@@ -40,10 +40,10 @@ export async function getOrCreatePhonebook(
   };
 
   // Otherwise create one and (synchronously) store it
-  console.log("Creating phonebook");
+  console.log("[Demo] Creating phonebook");
   const phonebook = await repo.create2<Phonebook>(contacts);
   setPhonebookUrl(phonebook.url);
-  console.log("Created and set phonebook");
+  console.log("[Demo] Created and set phonebook");
   return phonebook.url;
 }
 
