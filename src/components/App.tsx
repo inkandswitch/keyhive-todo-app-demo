@@ -1,54 +1,96 @@
-import keyhiveLogo from "/honeybee.png";
-import { isValidAutomergeUrl, type AutomergeUrl, useDocument, Message } from "@automerge/react";
+import keyhiveLogo from "../assets/honeybee.png";
+import halAvatarUrl from "../assets/HAL-9000.webp";
+import {
+  isValidAutomergeUrl,
+  type AutomergeUrl,
+  useDocument,
+} from "@automerge/react/slim";
 import { TaskList } from "./TaskList";
 import { DocumentList } from "./DocumentList";
 import { useHash } from "react-use";
 import { AvatarIcon } from "./AvatarIcon";
 import { UserModal } from "./UserModal";
-import { useState, useEffect, useCallback } from "react";
-import { AppData } from "../user";
-import { IdentitiesDocument } from "../identities";
-import { Archive, Keyhive } from "@keyhive/keyhive";
+import { useState, useEffect } from "react";
+import { KeyhiveKit } from "@automerge/identity";
+import { Phonebook } from "../phonebook";
+import { Identity } from "../active";
+import { uint8ArrayToHex } from "@automerge/automerge-keyhive-network-adapter";
+import { ContactCard } from "@keyhive/keyhive/slim";
 
 type AppProps = {
   docUrl: AutomergeUrl;
-  identitiesUrl: AutomergeUrl;
-  appData: AppData;
-  storeKeyhiveFn: (kh: Keyhive, shouldSync?: boolean) => void;
-}
+  keyhiveKit: KeyhiveKit;
+};
 
-function App({ docUrl, identitiesUrl, appData, storeKeyhiveFn }: AppProps) {
+function App({ docUrl, keyhiveKit }: AppProps) {
   const [keyhiveUpdateTracker, setKeyhiveUpdateTracker] = useState(0);
-  const storeKeyhive = useCallback((kh: Keyhive, shouldSync: boolean = true) => {
-    storeKeyhiveFn(kh, shouldSync);
-    setKeyhiveUpdateTracker(v => v + 1);
-  }, [storeKeyhiveFn]);
 
-  appData.keyhiveNetworkAdapter.on("keyhive", (msg: Message) => {
-    if (msg.data) {
-      const archive = new Archive(msg.data);
-      appData.keyhive.ingestArchive(archive);
-      // Store without syncing back
-      storeKeyhive(appData.keyhive, false);
-    } else {
-      console.error("Expected keyhive data not found in received Message")
-    }
-  })
-
-  // Polling for keyhive updates
+  // Watch for keyhive updates
   useEffect(() => {
-    const requestKeyhive = async () => {
-      appData.keyhiveNetworkAdapter.requestKeyhive()
+    const handler = () => {
+      setKeyhiveUpdateTracker((v) => v + 1);
     };
 
-    const interval = setInterval(requestKeyhive, 5000);
-    return () => clearInterval(interval);
-  }, [appData.keyhiveNetworkAdapter]);
+    keyhiveKit.emitter.on("update", handler);
+    return () => {
+      keyhiveKit.emitter.off("update", handler);
+    };
+  }, [keyhiveKit.emitter]);
 
-  const [activeState, setActiveState] = useState(appData.active);
-  const [identitiesDoc, changeIdentitiesDoc] = useDocument<IdentitiesDocument>(identitiesUrl, {
-    suspense: true,
-  });
+  const phonebookUrl = "automerge:4LC8WQxBbLH92x9crDq5HwhUYopU" as AutomergeUrl;
+  const identity: Identity = {
+    active: keyhiveKit.active,
+    contact: {
+      peerId: keyhiveKit.active.peerId,
+      avatar: null,
+    },
+  };
+  const [identityState, setIdentityState] = useState(identity);
+  const [phonebook, changePhonebook] = useDocument<Phonebook>(phonebookUrl);
+
+  // Load user's saved info from phonebook on startup
+  useEffect(() => {
+    if (phonebook && identityState.active.individual) {
+      const userHexId = uint8ArrayToHex(identityState.active.individual.id.toBytes());
+      const savedContact = phonebook[userHexId];
+      if (savedContact) {
+        setIdentityState((prev) => ({
+          ...prev,
+          contact: {
+            peerId: prev.contact.peerId,
+            name: savedContact.name,
+            avatar: savedContact.avatar,
+          },
+        }));
+      }
+    }
+  }, [phonebook, identityState.active.individual]);
+
+  // Add sync server to phonebook if not already there
+  useEffect(() => {
+    if (phonebook && keyhiveKit.syncServer) {
+      const serverContactCard = ContactCard.fromJson(keyhiveKit.syncServer.contactCard);
+      // const serverIndividual = getSyncServerIndividual(keyhiveKit.syncServer, keyhiveKit.keyhive);
+      if (serverContactCard) {
+        const serverHexId = uint8ArrayToHex(serverContactCard.id.bytes);
+        if (!phonebook[serverHexId]) {
+          // Load HAL avatar and add to phonebook
+          fetch(halAvatarUrl)
+            .then((res) => res.arrayBuffer())
+            .then((buffer) => {
+              changePhonebook((doc) => {
+                doc[serverHexId] = {
+                  peerId: keyhiveKit.syncServer.peerId,
+                  name: "Demo Sync Server",
+                  avatar: new Uint8Array(buffer),
+                };
+              });
+            });
+        }
+      }
+    }
+  }, [phonebook, keyhiveKit.syncServer, keyhiveKit.keyhive, changePhonebook]);
+
   const [hash, setHash] = useHash();
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   // Remove the leading '#'
@@ -64,7 +106,6 @@ function App({ docUrl, identitiesUrl, appData, storeKeyhiveFn }: AppProps) {
       <div className="w-80 border-r border-border bg-card">
         <DocumentList
           docUrl={docUrl}
-          identitiesDocUrl={identitiesUrl}
           onSelectDocument={(url) => {
             if (url) {
               setHash(url);
@@ -73,9 +114,8 @@ function App({ docUrl, identitiesUrl, appData, storeKeyhiveFn }: AppProps) {
             }
           }}
           selectedDocument={selectedDocUrl}
-          syncServer={appData.syncServer}
-          keyhive={appData.keyhive}
-          storeKeyhive={storeKeyhive}
+          syncServer={keyhiveKit.syncServer}
+          keyhive={keyhiveKit.keyhive}
         />
       </div>
 
@@ -84,18 +124,31 @@ function App({ docUrl, identitiesUrl, appData, storeKeyhiveFn }: AppProps) {
         {/* Header */}
         <header className="p-6 border-b border-foreground/10 bg-muted flex justify-center relative">
           <h1 className="text-2xl font-semibold flex items-center text-foreground">
-            <img src={keyhiveLogo} alt="Keyhive logo" id="keyhive-logo" />
+            <img
+              src={keyhiveLogo}
+              alt="Keyhive logo"
+              id="keyhive-logo"
+            />
             Keyhive Demo
           </h1>
           <div className="absolute right-6 top-1/2 -translate-y-1/2">
-            <AvatarIcon onClick={() => setIsUserModalOpen(true)} activeState={activeState} />
+            <AvatarIcon
+              onClick={() => setIsUserModalOpen(true)}
+              identityState={identityState}
+            />
           </div>
         </header>
 
         {/* Document */}
         <div className="flex-1 overflow-hidden">
           {selectedDocUrl ? (
-            <TaskList docUrl={selectedDocUrl} identitiesDoc={identitiesDoc} keyhive={appData.keyhive} storeKeyhive={storeKeyhive} active={activeState} keyhiveUpdateTracker={keyhiveUpdateTracker} />
+            <TaskList
+              docUrl={selectedDocUrl}
+              phonebook={phonebook}
+              keyhive={keyhiveKit.keyhive}
+              identity={identityState}
+              keyhiveUpdateTracker={keyhiveUpdateTracker}
+            />
           ) : (
             <div className="flex items-center justify-center h-full text-muted-foreground bg-muted">
               Select or create a document from the sidebar
@@ -113,11 +166,10 @@ function App({ docUrl, identitiesUrl, appData, storeKeyhiveFn }: AppProps) {
       <UserModal
         isOpen={isUserModalOpen}
         onClose={() => setIsUserModalOpen(false)}
-        activeState={activeState}
-        setActiveState={setActiveState}
-        identitiesDoc={identitiesDoc}
-        changeIdentitiesDoc={changeIdentitiesDoc}
-        db={appData.db}
+        identityState={identityState}
+        setIdentityState={setIdentityState}
+        phonebook={phonebook}
+        changePhonebook={changePhonebook}
       />
     </div>
   );

@@ -1,64 +1,89 @@
 import React from "react";
-import { useDocument, AutomergeUrl, useRepo, isValidAutomergeUrl } from "@automerge/react";
+import {
+  useDocument,
+  AutomergeUrl,
+  useRepo,
+  isValidAutomergeUrl,
+} from "@automerge/react/slim";
 import { initTaskList, TaskList } from "./TaskList";
 import { RootDocument } from "../rootDoc";
 import { useEffect, useState } from "react";
-import { AccessString } from "../user";
-import { generateDoc } from "../doc";
-import { SyncServer } from "../server";
-import { IdentitiesDocument } from "../identities";
-import { Individual, Keyhive } from "@keyhive/keyhive";
+import { Access, ContactCard, type Keyhive } from "@keyhive/keyhive/slim";
+import { addMemberToDoc, SyncServer } from "@automerge/automerge-keyhive-network-adapter";
+
+type AccessString = "admin" | "write" | "read" | "pull";
 
 interface DocumentListProps {
   docUrl: AutomergeUrl;
-  identitiesDocUrl: AutomergeUrl;
   selectedDocument: AutomergeUrl | null;
   onSelectDocument: (docUrl: AutomergeUrl | null) => void;
   syncServer: SyncServer;
   keyhive: Keyhive;
-  storeKeyhive: (kh: Keyhive) => void;
 }
 
-export const DocumentList = ({ docUrl, identitiesDocUrl, selectedDocument, onSelectDocument, syncServer, keyhive, storeKeyhive }: DocumentListProps) => {
+export const DocumentList = ({
+  docUrl,
+  selectedDocument,
+  onSelectDocument,
+  syncServer,
+  keyhive,
+}: DocumentListProps) => {
   const repo = useRepo();
   const [doc, changeDoc] = useDocument<RootDocument>(docUrl, {
-    suspense: true,
-  });
-  const [, changeIdentitiesDoc] = useDocument<IdentitiesDocument>(identitiesDocUrl, {
     suspense: true,
   });
   const [inputUrl, setInputUrl] = useState("");
 
   useEffect(() => {
+    if (!doc?.taskLists) return;
     changeDoc((d) => {
       if (selectedDocument && !d.taskLists.includes(selectedDocument)) {
         d.taskLists.push(selectedDocument);
       }
     });
-  }, [selectedDocument, changeDoc]);
+  }, [selectedDocument, changeDoc, doc]);
 
   const handleNewDocument = async () => {
+    console.trace("[Demo] Calling handleNewDocument");
     try {
-      const membersToAdd: [Individual, AccessString][] = []
+      const membersToAdd: [ContactCard, AccessString][] = [];
 
-      if (syncServer.individual) {
-        membersToAdd.push([syncServer.individual, "pull"])
+      const serverContactCard = ContactCard.fromJson(syncServer.contactCard);
+      if (serverContactCard) {
+        membersToAdd.push([serverContactCard, "pull"]);
       } else {
-        console.error("Missing syncServer individual!")
+        console.error("[Demo] Missing syncServer individual!");
       }
 
-      const newTaskList = await generateDoc(
-        keyhive,
-        changeIdentitiesDoc,
-        membersToAdd,
-        () => repo.create<TaskList>(initTaskList()),
-        storeKeyhive
-      );
+      const newTaskList = await repo.create2<TaskList>(initTaskList());
 
-      changeDoc((d) => d.taskLists.push(newTaskList.url));
+      for (const [contactCard, cap] of membersToAdd) {
+        const access = Access.tryFromString(cap);
+        if (!access) {
+          console.error("[Demo] Failed to derive Access");
+          continue;
+        }
+        console.trace(`[Demo] calling addMemberToDoc with access: ${access.toString()}`);
+        try {
+          await addMemberToDoc(
+            keyhive,
+            newTaskList.url,
+            contactCard,
+            access,
+          );
+          console.trace("[Demo] called addMemberToDoc");
+        } catch (err) {
+          console.error(`[Demo] addMemberToDoc failed: ${err}`);
+          throw err;
+        }
+      }
+
+      changeDoc((d) => {
+        d.taskLists.push(newTaskList.url);
+      });
       onSelectDocument(newTaskList.url);
     } catch (error) {
-      console.error("Error creating new document: ", error);
+      console.error(`[Demo] Error creating new document: ${error}`);
     }
   };
 
@@ -68,7 +93,7 @@ export const DocumentList = ({ docUrl, identitiesDocUrl, selectedDocument, onSel
     }
 
     changeDoc((d) => {
-      d.taskLists = d.taskLists.filter(url => url !== urlToDelete);
+      d.taskLists = d.taskLists.filter((url) => url !== urlToDelete);
     });
   };
 
@@ -93,13 +118,13 @@ export const DocumentList = ({ docUrl, identitiesDocUrl, selectedDocument, onSel
       {/* Document list */}
       <div className="flex-1 overflow-y-auto p-2 pb-6">
         <div className="space-y-1 mb-6">
-          {doc.taskLists.map((docUrl) => (
+          {doc?.taskLists?.map((docUrl) => (
             <div
               key={docUrl}
               className={`flex items-center justify-between py-2 px-3 rounded-md cursor-pointer text-sm transition-colors ${
                 docUrl === selectedDocument
-                  ? 'bg-accent text-accent-foreground'
-                  : 'text-foreground hover:bg-muted'
+                  ? "bg-accent text-accent-foreground"
+                  : "text-foreground hover:bg-muted"
               }`}
               onClick={() => onSelectDocument(docUrl)}
             >
@@ -108,7 +133,7 @@ export const DocumentList = ({ docUrl, identitiesDocUrl, selectedDocument, onSel
               </div>
               <button
                 className={`ml-2 w-5 h-5 flex items-center justify-center text-muted-foreground bg-transparent border-none rounded cursor-pointer transition-all duration-200 hover:text-destructive hover:bg-destructive/10 hover:opacity-100 ${
-                  docUrl === selectedDocument ? 'opacity-100' : 'opacity-0'
+                  docUrl === selectedDocument ? "opacity-100" : "opacity-0"
                 }`}
                 onClick={(e) => {
                   e.preventDefault();

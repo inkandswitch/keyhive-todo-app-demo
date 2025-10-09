@@ -1,9 +1,10 @@
-import { AutomergeUrl, useDocument, updateText } from "@automerge/react";
+import { AutomergeUrl, useDocument, updateText } from "@automerge/react/slim";
 import { ShareModal } from "./ShareModal";
-import { useState, useMemo } from "react";
-import { IdentitiesDocument } from "../identities";
-import { Active } from "../user";
-import { DocumentId, Keyhive } from "@keyhive/keyhive";
+import { useState, useEffect } from "react";
+import { Keyhive } from "@keyhive/keyhive/slim";
+import { Phonebook } from "../phonebook";
+import { Identity } from "../active";
+import { docIdFromAutomergeUrl } from "@automerge/automerge-keyhive-network-adapter";
 
 export interface Task {
   title: string;
@@ -25,73 +26,65 @@ export function initTaskList() {
 
 interface TaskListProps {
   docUrl: AutomergeUrl;
-  identitiesDoc: IdentitiesDocument;
+  phonebook: Phonebook | undefined;
   keyhive: Keyhive;
-  storeKeyhive: (kh: Keyhive) => void,
-  active: Active;
+  identity: Identity;
   keyhiveUpdateTracker: number;
 }
 
-export const TaskList = ({ docUrl, identitiesDoc, keyhive, storeKeyhive, active, keyhiveUpdateTracker }: TaskListProps) => {
+export const TaskList = ({
+  docUrl,
+  phonebook,
+  keyhive,
+  identity,
+  keyhiveUpdateTracker,
+}: TaskListProps) => {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [shouldShowShareButton, setShouldShowShareButton] = useState(false);
+  const [userAccess, setUserAccess] = useState<string | undefined>(undefined);
+
   const [doc, changeDoc] = useDocument<TaskList>(docUrl, {
     // This hooks the `useDocument` into reacts suspense infrastructure so the whole component
     // only renders once the document is loaded
     suspense: true,
   });
 
-  // Check if greater than pull access. Recalculate when keyhive updates.
-  const shouldShowShareButton = useMemo(() => {
-    const id = active.individual?.id
-    // FIXME: This should probably be an error
-    if (!id) return false;
-
-    const docIdBytes = identitiesDoc.docIds[docUrl]
-    if (!docIdBytes) {
-      console.error(`KeyhiveDocument not found in docMap for URL: ${docUrl}`);
-      return false;
-    }
-
-    const keyhiveDocId = new DocumentId(docIdBytes)
-
-    try {
-      const access = keyhive.accessForDoc(id, keyhiveDocId)
-      if (access) {
-        return access.toString() !== "Pull"
-      } else {
-        return false
+  // Check access level and update state. Recalculate when keyhive updates.
+  useEffect(() => {
+    async function fetchAccess() {
+      const id = identity.active.individual.id;
+      // FIXME: This should probably be an error
+      if (!id) {
+        setShouldShowShareButton(false);
+        setUserAccess(undefined);
+        return;
       }
-    } catch (error) {
-      console.error(`Error checking access level: ${error}`);
-      return false;
+
+      const keyhiveDocId = docIdFromAutomergeUrl(docUrl);
+
+      try {
+        const access = await keyhive.accessForDoc(id, keyhiveDocId);
+        if (access) {
+          const accessString = access.toString();
+          setUserAccess(accessString);
+          setShouldShowShareButton(accessString !== "Pull");
+        } else {
+          setUserAccess(undefined);
+          setShouldShowShareButton(false);
+        }
+      } catch (error) {
+        console.error(`[Demo] Error checking access level: ${error}`);
+        setUserAccess(undefined);
+        setShouldShowShareButton(false);
+      }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [keyhiveUpdateTracker, active.individual?.id, identitiesDoc.docIds, docUrl, keyhive]);
 
-  const userAccess = useMemo(() => {
-    const id = active.individual?.id
-    // FIXME: This should probably be an error
-    if (!id) return undefined;
-
-    const docIdBytes = identitiesDoc.docIds[docUrl]
-    if (!docIdBytes) {
-      return undefined;
-    }
-
-    const keyhiveDocId = new DocumentId(docIdBytes)
-
-    try {
-      const access = keyhive.accessForDoc(id, keyhiveDocId)
-      return access ? access.toString() : undefined;
-    } catch (error) {
-      console.error("Error checking access level:", error);
-      return undefined;
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [keyhiveUpdateTracker, active.individual?.id, identitiesDoc.docIds, docUrl, keyhive]);
+    fetchAccess();
+  }, [keyhiveUpdateTracker, identity.active.individual.id, docUrl, keyhive]);
 
   const canEdit = userAccess === "Write" || userAccess === "Admin";
-  const canRead = userAccess === "Read" || userAccess === "Write" || userAccess === "Admin";
+  const canRead =
+    userAccess === "Read" || userAccess === "Write" || userAccess === "Admin";
 
   if (!canRead) {
     return (
@@ -106,11 +99,13 @@ export const TaskList = ({ docUrl, identitiesDoc, keyhive, storeKeyhive, active,
                   </h1>
                 </div>
                 <h2 className="text-sm text-muted-foreground">
-                  List ID: {docUrl.replace('automerge:', '')}
+                  List ID: {docUrl.replace("automerge:", "")}
                 </h2>
               </div>
               <div className="text-center py-8">
-                <p className="text-muted-foreground">You do not have access to this document</p>
+                <p className="text-muted-foreground">
+                  You do not have access to this document
+                </p>
               </div>
             </div>
           </div>
@@ -144,7 +139,11 @@ export const TaskList = ({ docUrl, identitiesDoc, keyhive, storeKeyhive, active,
                 )}
                 <button
                   type="button"
-                  onClick={shouldShowShareButton ? () => setIsShareModalOpen(true) : undefined}
+                  onClick={
+                    shouldShowShareButton
+                      ? () => setIsShareModalOpen(true)
+                      : undefined
+                  }
                   disabled={!shouldShowShareButton}
                   className={`px-4 py-2 border rounded-md text-sm font-medium transition-colors ${
                     shouldShowShareButton
@@ -155,73 +154,82 @@ export const TaskList = ({ docUrl, identitiesDoc, keyhive, storeKeyhive, active,
                   Share
                 </button>
               </div>
-            <h2 className="text-sm text-muted-foreground">
-              List ID: {docUrl.replace('automerge:', '')}
-            </h2>
-          </div>
-
-          {canEdit && (
-            <div className="flex justify-start items-center mb-2">
-              <button
-                type="button"
-                onClick={() => {
-                  changeDoc((d) =>
-                    d.tasks.unshift({
-                      title: "",
-                      done: false,
-                    }),
-                  );
-                }}
-                className="px-4 py-2 bg-secondary text-secondary-foreground border border-border rounded-md text-sm font-medium cursor-pointer hover:bg-accent hover:border-ring transition-colors"
-              >
-                + New task
-              </button>
+              <h2 className="text-sm text-muted-foreground">
+                List ID: {docUrl.replace("automerge:", "")}
+              </h2>
             </div>
-          )}
 
-          <div className="flex flex-col gap-3">
-            {doc &&
-              doc.tasks?.map(({ title, done }, index) => (
-                <div className="flex items-center gap-3" key={index}>
-                  <input
-                    type="checkbox"
-                    checked={done}
-                    onChange={canEdit ? () =>
-                      changeDoc((d) => {
-                        d.tasks[index].done = !d.tasks[index].done;
-                      })
-                    : undefined}
-                    disabled={!canEdit}
-                    className={`w-4 h-4 accent-primary ${!canEdit ? 'cursor-not-allowed opacity-50' : ''}`}
-                  />
+            {canEdit && (
+              <div className="flex justify-start items-center mb-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    changeDoc((d) =>
+                      d.tasks.unshift({
+                        title: "",
+                        done: false,
+                      }),
+                    );
+                  }}
+                  className="px-4 py-2 bg-secondary text-secondary-foreground border border-border rounded-md text-sm font-medium cursor-pointer hover:bg-accent hover:border-ring transition-colors"
+                >
+                  + New task
+                </button>
+              </div>
+            )}
 
-                  {canEdit ? (
+            <div className="flex flex-col gap-3">
+              {doc &&
+                doc.tasks?.map(({ title, done }, index) => (
+                  <div className="flex items-center gap-3" key={index}>
                     <input
-                      type="text"
-                      placeholder="What needs doing?"
-                      value={title || ""}
-                      onChange={(e) =>
-                        changeDoc((d) => {
-                          updateText(d, ["tasks", index, "title"], e.target.value);
-                        })
+                      type="checkbox"
+                      checked={done}
+                      onChange={
+                        canEdit
+                          ? () =>
+                              changeDoc((d) => {
+                                d.tasks[index].done = !d.tasks[index].done;
+                              })
+                          : undefined
                       }
-                      className={`flex-1 px-3 py-2 border border-border rounded-md text-sm bg-background ${
-                        done
-                          ? 'line-through text-muted-foreground'
-                          : 'text-foreground'
-                      }`}
+                      disabled={!canEdit}
+                      className={`w-4 h-4 accent-primary ${!canEdit ? "cursor-not-allowed opacity-50" : ""}`}
                     />
-                  ) : (
-                    <div className={`flex-1 px-3 py-2 text-sm ${
-                      done
-                        ? 'line-through text-muted-foreground'
-                        : 'text-foreground'
-                    }`}>
-                      {title || ""}
-                    </div>
-                  )}
-                </div>
-              ))}
+
+                    {canEdit ? (
+                      <input
+                        type="text"
+                        placeholder="What needs doing?"
+                        value={title || ""}
+                        onChange={(e) =>
+                          changeDoc((d) => {
+                            updateText(
+                              d,
+                              ["tasks", index, "title"],
+                              e.target.value,
+                            );
+                          })
+                        }
+                        className={`flex-1 px-3 py-2 border border-border rounded-md text-sm bg-background ${
+                          done
+                            ? "line-through text-muted-foreground"
+                            : "text-foreground"
+                        }`}
+                      />
+                    ) : (
+                      <div
+                        className={`flex-1 px-3 py-2 text-sm ${
+                          done
+                            ? "line-through text-muted-foreground"
+                            : "text-foreground"
+                        }`}
+                      >
+                        {title || ""}
+                      </div>
+                    )}
+                  </div>
+                ))}
             </div>
           </div>
         </div>
@@ -229,11 +237,10 @@ export const TaskList = ({ docUrl, identitiesDoc, keyhive, storeKeyhive, active,
       <ShareModal
         isOpen={isShareModalOpen}
         docUrl={docUrl}
-        identitiesDoc={identitiesDoc}
+        phonebook={phonebook}
         keyhive={keyhive}
-        storeKeyhive={storeKeyhive}
+        identity={identity}
         keyhiveUpdateTracker={keyhiveUpdateTracker}
-        active={active}
         onClose={() => setIsShareModalOpen(false)}
       />
     </div>
