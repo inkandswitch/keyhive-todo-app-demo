@@ -1,4 +1,4 @@
-import { Active } from "@automerge/automerge-keyhive-network-adapter";
+import { Active } from "@automerge/automerge-repo-keyhive";
 import { Contact } from "./phonebook";
 
 export type Identity = {

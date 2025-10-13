@@ -10,7 +10,7 @@ export default defineConfig({
     port: 5557,
     watch: {
       ignored: [
-        "!**/node_modules/@automerge/automerge-keyhive-network-adapter/**",
+        "!**/node_modules/@automerge/automerge-repo-keyhive/**",
       ],
     },
   },

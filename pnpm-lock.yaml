@@ -8,12 +8,12 @@ importers:
 
   .:
     dependencies:
-      '@automerge/automerge-keyhive-network-adapter':
-        specifier: 0.0.0-alpha.50
-        version: 0.0.0-alpha.50
       '@automerge/automerge-repo':
         specifier: 2.4.0-alpha.2
         version: 2.4.0-alpha.2
+      '@automerge/automerge-repo-keyhive':
+        specifier: 0.0.0-alpha.56
+        version: 0.0.0-alpha.56
       '@automerge/identity':
         specifier: link:../gaios/packages/identity
         version: link:../gaios/packages/identity
@@ -21,8 +21,8 @@ importers:
         specifier: 2.4.0-alpha.2
         version: 2.4.0-alpha.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@keyhive/keyhive':
-        specifier: 0.0.0-alpha.33
-        version: 0.0.0-alpha.33
+        specifier: 0.0.0-alpha.35
+        version: 0.0.0-alpha.35
       '@noble/hashes':
         specifier: ^2.0.1
         version: 2.0.1
@@ -97,8 +97,8 @@ packages:
     resolution: {integrity: sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw==}
     engines: {node: '>=10'}
 
-  '@automerge/automerge-keyhive-network-adapter@0.0.0-alpha.50':
-    resolution: {integrity: sha512-b4k1l7VhjsGOfheT79i1fv1vGwIQxj31RcLw+TdAiDHw7y+xqIwTAWVNfB2xK4ACUKeBkmreYlq+1LtQ567smQ==}
+  '@automerge/automerge-repo-keyhive@0.0.0-alpha.56':
+    resolution: {integrity: sha512-nw+TubTqWhs18ASoWsCO2WuTQI1fbfS2+kGRJR7QLI+LpaZD0HhbZumGhQIV4xtMs+IMsW9Dvlfvwd13Dc7xkg==}
 
   '@automerge/automerge-repo-network-broadcastchannel@2.4.0-alpha.2':
     resolution: {integrity: sha512-l3VJomRii8T7jZD9kmJ0vXO3c/Usnir6y2DoO5t4nlxIU9cikf/pr0FaJp8p3RyZOwe2aACrzTPbJnU9KAXRYA==}
@@ -435,8 +435,8 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
-  '@keyhive/keyhive@0.0.0-alpha.33':
-    resolution: {integrity: sha512-JaHLtzwI/gq1xMVhpEVyjtTEKgK9GhPNfzcO6dMpg4WL6UD2G+70AqkW6BxTPC/k17hNmp54cnSkZevF/ZIuvA==}
+  '@keyhive/keyhive@0.0.0-alpha.35':
+    resolution: {integrity: sha512-kBmOP8DmTCJDm8yn0f7Kb+s3FtNGGH+dTjcd0jEmfRwsZJMVHiX02ltzQO+AM5+KD2VNCg7aP77E9HDtJzemiw==}
 
   '@noble/ed25519@3.0.0':
     resolution: {integrity: sha512-QyteqMNm0GLqfa5SoYbSC3+Pvykwpn95Zgth4MFVSMKBB75ELl9tX1LAVsN4c3HXOrakHsF2gL4zWDAYCcsnzg==}
@@ -736,8 +736,8 @@ packages:
   base-x@4.0.1:
     resolution: {integrity: sha512-uAZ8x6r6S3aUM9rbHGVOIsR15U/ZSc82b3ymnCPsT45Gk1DDvhDPdIgB5MrhirZWt+5K0EEPQH985kNqZgNPFw==}
 
-  baseline-browser-mapping@2.8.14:
-    resolution: {integrity: sha512-GM9c0cWWR8Ga7//Ves/9KRgTS8nLausCkP3CGiFLrnwA2CDUluXgaQqvrULoR2Ujrd/mz/lkX87F5BHFsNr5sQ==}
+  baseline-browser-mapping@2.8.16:
+    resolution: {integrity: sha512-OMu3BGQ4E7P1ErFsIPpbJh0qvDudM/UuJeHgkAvfWe+0HFJCXh+t/l8L6fVLR55RI/UbKrVLnAXZSVwd9ysWYw==}
     hasBin: true
 
   binary-extensions@2.3.0:
@@ -773,8 +773,8 @@ packages:
     resolution: {integrity: sha512-QOSvevhslijgYwRx6Rv7zKdMF8lbRmx+uQGx2+vDc+KI/eBnsy9kit5aj23AgGu3pa4t9AgwbnXWqS+iOY+2aA==}
     engines: {node: '>= 6'}
 
-  caniuse-lite@1.0.30001749:
-    resolution: {integrity: sha512-0rw2fJOmLfnzCRbkm8EyHL8SvI2Apu5UbnQuTsJ0ClgrH8hcwFooJ1s5R0EP8o8aVrFu8++ae29Kt9/gZAZp/Q==}
+  caniuse-lite@1.0.30001750:
+    resolution: {integrity: sha512-cuom0g5sdX6rw00qOoLNSFCJ9/mYIsuSOA+yzpDw8eopiFqcVwQvZHqov0vmEighRxX++cfC0Vg1G+1Iy/mSpQ==}
 
   cbor-extract@2.2.0:
     resolution: {integrity: sha512-Ig1zM66BjLfTXpNgKpvBePq271BPOvu8MR0Jl080yG7Jsl+wAZunfrwiwA+9ruzm/WEdIV5QF/bjDZTqyAIVHA==}
@@ -867,8 +867,8 @@ packages:
   eastasianwidth@0.2.0:
     resolution: {integrity: sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==}
 
-  electron-to-chromium@1.5.233:
-    resolution: {integrity: sha512-iUdTQSf7EFXsDdQsp8MwJz5SVk4APEFqXU/S47OtQ0YLqacSwPXdZ5vRlMX3neb07Cy2vgioNuRnWUXFwuslkg==}
+  electron-to-chromium@1.5.234:
+    resolution: {integrity: sha512-RXfEp2x+VRYn8jbKfQlRImzoJU01kyDvVPBmG39eU2iuRVhuS6vQNocB8J0/8GrIMLnPzgz4eW6WiRnJkTuNWg==}
 
   emoji-regex@8.0.0:
     resolution: {integrity: sha512-MSjYzcWNOA0ewAHpz0MxpYFvwg6yjy1NG3xteoqz644VCo/RPgnr1/GGt+ic3iJTzQ8Eu3TdM14SawnVUmGE6A==}
@@ -1678,8 +1678,8 @@ packages:
       utf-8-validate:
         optional: true
 
-  xstate@5.22.1:
-    resolution: {integrity: sha512-ajh2WQw2+nM6K3ZDTBbhODb72SOLlOnd/t92jSXyOH5rTF/T0XtBIwXxbEBvsdwdnzaAaEcrxZu4aEKr/781pQ==}
+  xstate@5.23.0:
+    resolution: {integrity: sha512-jo126xWXkU6ySQ91n51+H2xcgnMuZcCQpQoD3FQ79d32a6RQvryRh8rrDHnH4WDdN/yg5xNjlIRol9ispMvzeg==}
 
   yallist@3.1.1:
     resolution: {integrity: sha512-a4UGQaWPH59mOXUYnAG2ewncQS4i4F43Tv3JoAM+s2VDAmS9NsK8GpDMLrCHPksFT7h3K6TOoUNn2pb7RoXx4g==}
@@ -1692,11 +1692,11 @@ snapshots:
 
   '@alloc/quick-lru@5.2.0': {}
 
-  '@automerge/automerge-keyhive-network-adapter@0.0.0-alpha.50':
+  '@automerge/automerge-repo-keyhive@0.0.0-alpha.56':
     dependencies:
       '@automerge/automerge-repo': 2.4.0-alpha.2
       '@automerge/automerge-repo-network-websocket': 2.4.0-alpha.2
-      '@keyhive/keyhive': 0.0.0-alpha.33
+      '@keyhive/keyhive': 0.0.0-alpha.35
       eventemitter3: 5.0.1
     transitivePeerDependencies:
       - bufferutil
@@ -1756,7 +1756,7 @@ snapshots:
       eventemitter3: 5.0.1
       fast-sha256: 1.3.0
       uuid: 9.0.1
-      xstate: 5.22.1
+      xstate: 5.23.0
     transitivePeerDependencies:
       - supports-color
 
@@ -2041,7 +2041,7 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
-  '@keyhive/keyhive@0.0.0-alpha.33': {}
+  '@keyhive/keyhive@0.0.0-alpha.35': {}
 
   '@noble/ed25519@3.0.0': {}
 
@@ -2304,7 +2304,7 @@ snapshots:
   autoprefixer@10.4.21(postcss@8.5.6):
     dependencies:
       browserslist: 4.26.3
-      caniuse-lite: 1.0.30001749
+      caniuse-lite: 1.0.30001750
       fraction.js: 4.3.7
       normalize-range: 0.1.2
       picocolors: 1.1.1
@@ -2315,7 +2315,7 @@ snapshots:
 
   base-x@4.0.1: {}
 
-  baseline-browser-mapping@2.8.14: {}
+  baseline-browser-mapping@2.8.16: {}
 
   binary-extensions@2.3.0: {}
 
@@ -2334,9 +2334,9 @@ snapshots:
 
   browserslist@4.26.3:
     dependencies:
-      baseline-browser-mapping: 2.8.14
-      caniuse-lite: 1.0.30001749
-      electron-to-chromium: 1.5.233
+      baseline-browser-mapping: 2.8.16
+      caniuse-lite: 1.0.30001750
+      electron-to-chromium: 1.5.234
       node-releases: 2.0.23
       update-browserslist-db: 1.1.3(browserslist@4.26.3)
 
@@ -2353,7 +2353,7 @@ snapshots:
 
   camelcase-css@2.0.1: {}
 
-  caniuse-lite@1.0.30001749: {}
+  caniuse-lite@1.0.30001750: {}
 
   cbor-extract@2.2.0:
     dependencies:
@@ -2448,7 +2448,7 @@ snapshots:
 
   eastasianwidth@0.2.0: {}
 
-  electron-to-chromium@1.5.233: {}
+  electron-to-chromium@1.5.234: {}
 
   emoji-regex@8.0.0: {}
 
@@ -3245,7 +3245,7 @@ snapshots:
 
   ws@8.18.3: {}
 
-  xstate@5.22.1: {}
+  xstate@5.23.0: {}
 
   yallist@3.1.1: {}
 

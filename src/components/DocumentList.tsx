@@ -4,12 +4,13 @@ import {
   AutomergeUrl,
   useRepo,
   isValidAutomergeUrl,
+  DocumentId,
 } from "@automerge/react/slim";
 import { initTaskList, TaskList } from "./TaskList";
 import { RootDocument } from "../rootDoc";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { Access, ContactCard, type Keyhive } from "@keyhive/keyhive/slim";
-import { addMemberToDoc, SyncServer } from "@automerge/automerge-keyhive-network-adapter";
+import { addMemberToDoc, SyncServer } from "@automerge/automerge-repo-keyhive";
 
 type AccessString = "admin" | "write" | "read" | "pull";
 
@@ -19,6 +20,7 @@ interface DocumentListProps {
   onSelectDocument: (docUrl: AutomergeUrl | null) => void;
   syncServer: SyncServer;
   keyhive: Keyhive;
+  keyhiveUpdateTracker: number;
 }
 
 export const DocumentList = ({
@@ -27,6 +29,7 @@ export const DocumentList = ({
   onSelectDocument,
   syncServer,
   keyhive,
+  keyhiveUpdateTracker,
 }: DocumentListProps) => {
   const repo = useRepo();
   const [doc, changeDoc] = useDocument<RootDocument>(docUrl, {
@@ -34,17 +37,20 @@ export const DocumentList = ({
   });
   const [inputUrl, setInputUrl] = useState("");
 
+  // Add selected document from URL to user's list if not already present
   useEffect(() => {
-    if (!doc?.taskLists) return;
+    if (!doc?.taskLists || !selectedDocument) return;
+    if (doc.taskLists.includes(selectedDocument)) return;
+
     changeDoc((d) => {
-      if (selectedDocument && !d.taskLists.includes(selectedDocument)) {
+      if (!d.taskLists.includes(selectedDocument)) {
         d.taskLists.push(selectedDocument);
       }
     });
   }, [selectedDocument, changeDoc, doc]);
 
   const handleNewDocument = async () => {
-    console.trace("[Demo] Calling handleNewDocument");
+    console.debug("[Demo] Calling handleNewDocument");
     try {
       const membersToAdd: [ContactCard, AccessString][] = [];
 
@@ -63,7 +69,7 @@ export const DocumentList = ({
           console.error("[Demo] Failed to derive Access");
           continue;
         }
-        console.trace(`[Demo] calling addMemberToDoc with access: ${access.toString()}`);
+        console.debug(`[Demo] calling addMemberToDoc with access: ${access.toString()}`);
         try {
           await addMemberToDoc(
             keyhive,
@@ -71,7 +77,7 @@ export const DocumentList = ({
             contactCard,
             access,
           );
-          console.trace("[Demo] called addMemberToDoc");
+          console.debug("[Demo] called addMemberToDoc");
         } catch (err) {
           console.error(`[Demo] addMemberToDoc failed: ${err}`);
           throw err;
@@ -88,13 +94,17 @@ export const DocumentList = ({
   };
 
   const handleDeleteDocument = (urlToDelete: AutomergeUrl) => {
+    // Deselect first to prevent the useEffect from re-adding it
     if (urlToDelete === selectedDocument) {
       onSelectDocument(null);
     }
 
-    changeDoc((d) => {
-      d.taskLists = d.taskLists.filter((url) => url !== urlToDelete);
-    });
+    // Use setTimeout to ensure onSelectDocument(null) takes effect before we delete
+    setTimeout(() => {
+      changeDoc((d) => {
+        d.taskLists = d.taskLists.filter((url) => url !== urlToDelete);
+      });
+    }, 0);
   };
 
   const handleLoadUrl = (e: React.FormEvent) => {
@@ -102,7 +112,14 @@ export const DocumentList = ({
     if (inputUrl) {
       const url = `automerge:${inputUrl}`;
       if (isValidAutomergeUrl(url)) {
-        onSelectDocument(url as AutomergeUrl);
+        const docUrl = url as AutomergeUrl;
+        // Add the document to the user's list if it's not already there
+        changeDoc((d) => {
+          if (!d.taskLists.includes(docUrl)) {
+            d.taskLists.push(docUrl);
+          }
+        });
+        onSelectDocument(docUrl);
         setInputUrl("");
       }
     }
@@ -129,7 +146,7 @@ export const DocumentList = ({
               onClick={() => onSelectDocument(docUrl)}
             >
               <div className="flex-grow min-w-0">
-                <DocumentTitle docUrl={docUrl} />
+                <DocumentTitle docUrl={docUrl} keyhiveUpdateTracker={keyhiveUpdateTracker} />
               </div>
               <button
                 className={`ml-2 w-5 h-5 flex items-center justify-center text-muted-foreground bg-transparent border-none rounded cursor-pointer transition-all duration-200 hover:text-destructive hover:bg-destructive/10 hover:opacity-100 ${
@@ -179,10 +196,42 @@ export const DocumentList = ({
   );
 };
 
-// Component to display document title
-const DocumentTitle: React.FC<{ docUrl: AutomergeUrl }> = ({ docUrl }) => {
-  const [doc] = useDocument<TaskList>(docUrl, { suspense: true });
+const DocumentTitle: React.FC<{ docUrl: AutomergeUrl; keyhiveUpdateTracker: number }> = React.memo(
+  ({ docUrl, keyhiveUpdateTracker }) => {
+    const repo = useRepo();
+    const [doc] = useDocument<TaskList>(docUrl);
 
-  const title = doc.title || "Untitled Task List";
-  return <span className="text-sm font-medium text-foreground">{title}</span>;
-};
+    // Retry loading the document when keyhive updates
+    useEffect(() => {
+      if (!doc) {
+        console.debug(`[Demo] Retrying document load for ${docUrl} (keyhive update ${keyhiveUpdateTracker})`);
+        const documentId = docUrl.replace("automerge:", "") as DocumentId;
+        const handle = repo.handles[documentId];
+        if (handle) {
+          if (handle.isUnavailable()) {
+            // Call reload to switch the handle's state from unavailable back to loading
+            handle.reload();
+            handle.request();
+          } else if !(handle.state === 'requesting' || handle.state === 'loading') {
+            repo.find(docUrl);
+          }
+        } else {
+          repo.find(docUrl);
+        }
+      }
+    }, [keyhiveUpdateTracker, doc, repo, docUrl]);
+
+    if (!doc) {
+      const docId = docUrl.replace("automerge:", "");
+      const shortId = docId.length > 8 ? `${docId.slice(0, 8)}...` : docId;
+      return <span className="text-sm font-medium text-muted-foreground">{shortId} loading...</span>;
+    }
+
+    const title = doc.title || "Untitled Task List";
+    return <span className="text-sm font-medium text-foreground">{title}</span>;
+  },
+  (prevProps, nextProps) => {
+    // Only re-render if docUrl or keyhiveUpdateTracker changes
+    return prevProps.docUrl === nextProps.docUrl && prevProps.keyhiveUpdateTracker === nextProps.keyhiveUpdateTracker;
+  }
+);

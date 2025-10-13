@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { AutomergeUrl } from "@automerge/react/slim";
 import { Access, ContactCard, Keyhive } from "@keyhive/keyhive/slim";
 import { Phonebook } from "../phonebook";
 import { Identity } from "../active";
 import { accessListForDoc, DocAccessList } from "../utilities";
-import { addMemberToDoc, docIdFromAutomergeUrl, revokeMemberFromDoc, uint8ArrayToHex } from "@automerge/automerge-keyhive-network-adapter";
+import { addMemberToDoc, docIdFromAutomergeUrl, revokeMemberFromDoc, uint8ArrayToHex } from "@automerge/automerge-repo-keyhive";
 import blankAvatarImg from "../assets/blankavatar.jpeg";
 
 interface ShareModalProps {
@@ -32,30 +32,42 @@ export function ShareModal({
   const [isLoadingAccessList, setIsLoadingAccessList] = useState(true);
   const [currentUserAccess, setCurrentUserAccess] = useState<string | undefined>(undefined);
 
+  const keyhiveDocId = useMemo(() => docIdFromAutomergeUrl(docUrl), [docUrl]);
+
   useEffect(() => {
+    let cancelled = false;
+
     async function fetchCurrentUserAccess() {
       const id = identity.active.individual.id;
       // FIXME: This should probably be an error
       if (!id) {
-        setCurrentUserAccess(undefined);
+        if (!cancelled) {
+          setCurrentUserAccess(undefined);
+        }
         return;
       }
 
-      const keyhiveDocId = docIdFromAutomergeUrl(docUrl);
-
       try {
         const access = await keyhive.accessForDoc(id, keyhiveDocId);
-        setCurrentUserAccess(access ? access.toString() : undefined);
+        if (!cancelled) {
+          setCurrentUserAccess(access ? access.toString() : undefined);
+        }
       } catch (error) {
-        console.error("[Demo] Error checking access level:", error);
-        setCurrentUserAccess(undefined);
+        if (!cancelled) {
+          console.error("[Demo] Error checking access level:", error);
+          setCurrentUserAccess(undefined);
+        }
       }
     }
 
     if (isOpen) {
       fetchCurrentUserAccess();
     }
-  }, [keyhiveUpdateTracker, identity.active.individual.id, docUrl, keyhive, isOpen]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [keyhiveUpdateTracker, identity.active.individual.id, keyhiveDocId, keyhive, isOpen]);
 
   const accessLevels = ["Pull", "Read", "Write", "Admin"];
   // You can share at your access level and below
@@ -77,23 +89,36 @@ export function ShareModal({
     : null;
 
   useEffect(() => {
+    let cancelled = false;
+
     async function fetchAccessList() {
-      setIsLoadingAccessList(true);
-      const khDocId = docIdFromAutomergeUrl(docUrl);
-      if (khDocId) {
-        const accessList = await accessListForDoc(keyhive, khDocId);
-        setDocAccessList(accessList);
-      } else {
-        console.error("[Demo] NO DOC!");
-        setDocAccessList({});
+      if (!cancelled) {
+        setIsLoadingAccessList(true);
       }
-      setIsLoadingAccessList(false);
+
+      if (keyhiveDocId) {
+        const accessList = await accessListForDoc(keyhive, keyhiveDocId);
+        if (!cancelled) {
+          setDocAccessList(accessList);
+          setIsLoadingAccessList(false);
+        }
+      } else {
+        if (!cancelled) {
+          console.error("[Demo] NO DOC!");
+          setDocAccessList({});
+          setIsLoadingAccessList(false);
+        }
+      }
     }
 
     if (isOpen) {
       fetchAccessList();
     }
-  }, [keyhiveUpdateTracker, docUrl, keyhive, isOpen]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [keyhiveUpdateTracker, keyhiveDocId, keyhive, isOpen]);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {

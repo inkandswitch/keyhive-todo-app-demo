@@ -1,7 +1,7 @@
 import { PeerId } from "@automerge/automerge-repo/slim";
 import { Individual } from "@keyhive/keyhive/slim";
 import { Phonebook } from "./phonebook";
-import { uint8ArrayToHex } from "@automerge/automerge-keyhive-network-adapter";
+import { uint8ArrayToHex } from "@automerge/automerge-repo-keyhive";
 
 export type SyncServer = {
   individual: Individual;

@@ -3,20 +3,20 @@ import {
   DocHandle,
   Repo,
   RepoContext,
-  useDocument,
   useRepo,
 } from "@automerge/react/slim";
 import { KeyhiveKit } from "@automerge/identity";
 import App from "./App";
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { RootDocument } from "../rootDoc";
+import { uint8ArrayToHex } from "@automerge/automerge-repo-keyhive";
 
 export interface TemporaryAccountInterface {
   rootFolderUrl: AutomergeUrl;
 }
 
 export default function Frame({
-  accountHandle,
+  accountHandle: _accountHandle,
   keyhiveKit,
   repo,
 }: {
@@ -26,40 +26,41 @@ export default function Frame({
 }) {
   return (
     <RepoContext.Provider value={repo}>
-      <FrameInner accountUrl={accountHandle.url} keyhiveKit={keyhiveKit} />
+      <FrameInner keyhiveKit={keyhiveKit} />
     </RepoContext.Provider>
   );
 }
 
 function FrameInner(props: {
-  accountUrl: AutomergeUrl;
   keyhiveKit: KeyhiveKit;
 }) {
   const repo = useRepo();
-  const [account, changeAccount] = useDocument<TemporaryAccountInterface>(
-    props.accountUrl,
-    { suspense: true },
-  );
+  const [rootDocUrl, setRootDocUrl] = useState<AutomergeUrl | null>(null);
 
   useEffect(() => {
-    if (!account?.rootFolderUrl) {
-      console.log("[Demo] No rootFolderUrl found, creating root document");
+    const identityId = uint8ArrayToHex(props.keyhiveKit.active.individual.id.toBytes());
+    const storageKey = `keyhive-demo-root-${identityId}`;
+    const existingUrl = localStorage.getItem(storageKey);
+    if (existingUrl) {
+      console.log(`[Demo] Found existing root doc for identity ${identityId}: ${existingUrl}`);
+      setRootDocUrl(existingUrl as AutomergeUrl);
+    } else {
+      console.log(`[Demo] Creating new root doc for identity ${identityId}`);
       const handle = repo.create<RootDocument>({ taskLists: [] });
-      console.log("[Demo] Created root document:", handle.url);
-      changeAccount((doc) => {
-        doc.rootFolderUrl = handle.url;
-      });
+      console.log(`[Demo] Created root document: ${handle.url}`);
+      localStorage.setItem(storageKey, handle.url);
+      setRootDocUrl(handle.url);
     }
-  }, [account, changeAccount, repo]);
+  }, [repo, props.keyhiveKit.active.individual.id]);
 
-  if (!account?.rootFolderUrl) {
+  if (!rootDocUrl) {
     return <div>Initializing...</div>;
   }
 
   return (
     <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
       <App
-        docUrl={account.rootFolderUrl}
+        docUrl={rootDocUrl}
         keyhiveKit={props.keyhiveKit}
       />
     </Suspense>

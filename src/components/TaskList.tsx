@@ -1,10 +1,10 @@
 import { AutomergeUrl, useDocument, updateText } from "@automerge/react/slim";
 import { ShareModal } from "./ShareModal";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Keyhive } from "@keyhive/keyhive/slim";
 import { Phonebook } from "../phonebook";
 import { Identity } from "../active";
-import { docIdFromAutomergeUrl } from "@automerge/automerge-keyhive-network-adapter";
+import { docIdFromAutomergeUrl } from "@automerge/automerge-repo-keyhive";
 
 export interface Task {
   title: string;
@@ -44,26 +44,30 @@ export const TaskList = ({
   const [userAccess, setUserAccess] = useState<string | undefined>(undefined);
 
   const [doc, changeDoc] = useDocument<TaskList>(docUrl, {
-    // This hooks the `useDocument` into reacts suspense infrastructure so the whole component
-    // only renders once the document is loaded
     suspense: true,
   });
 
+  const keyhiveDocId = useMemo(() => docIdFromAutomergeUrl(docUrl), [docUrl]);
+
   // Check access level and update state. Recalculate when keyhive updates.
   useEffect(() => {
+    let cancelled = false;
+
     async function fetchAccess() {
       const id = identity.active.individual.id;
       // FIXME: This should probably be an error
       if (!id) {
-        setShouldShowShareButton(false);
-        setUserAccess(undefined);
+        if (!cancelled) {
+          setShouldShowShareButton(false);
+          setUserAccess(undefined);
+        }
         return;
       }
 
-      const keyhiveDocId = docIdFromAutomergeUrl(docUrl);
-
       try {
         const access = await keyhive.accessForDoc(id, keyhiveDocId);
+        if (cancelled) return;
+
         if (access) {
           const accessString = access.toString();
           setUserAccess(accessString);
@@ -73,14 +77,20 @@ export const TaskList = ({
           setShouldShowShareButton(false);
         }
       } catch (error) {
-        console.error(`[Demo] Error checking access level: ${error}`);
-        setUserAccess(undefined);
-        setShouldShowShareButton(false);
+        if (!cancelled) {
+          console.error(`[Demo] Error checking access level: ${error}`);
+          setUserAccess(undefined);
+          setShouldShowShareButton(false);
+        }
       }
     }
 
     fetchAccess();
-  }, [keyhiveUpdateTracker, identity.active.individual.id, docUrl, keyhive]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [keyhiveUpdateTracker, identity.active.individual.id, keyhiveDocId, keyhive]);
 
   const canEdit = userAccess === "Write" || userAccess === "Admin";
   const canRead =

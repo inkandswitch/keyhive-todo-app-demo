@@ -10,11 +10,11 @@ import { DocumentList } from "./DocumentList";
 import { useHash } from "react-use";
 import { AvatarIcon } from "./AvatarIcon";
 import { UserModal } from "./UserModal";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Component, type ReactNode } from "react";
 import { KeyhiveKit } from "@automerge/identity";
 import { Phonebook } from "../phonebook";
 import { Identity } from "../active";
-import { uint8ArrayToHex } from "@automerge/automerge-keyhive-network-adapter";
+import { uint8ArrayToHex } from "@automerge/automerge-repo-keyhive";
 import { ContactCard } from "@keyhive/keyhive/slim";
 
 type AppProps = {
@@ -22,17 +22,44 @@ type AppProps = {
   keyhiveKit: KeyhiveKit;
 };
 
+class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error) {
+    console.error("[Demo] Caught error:", error);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return null;
+    }
+    return this.props.children;
+  }
+}
+
 function App({ docUrl, keyhiveKit }: AppProps) {
   const [keyhiveUpdateTracker, setKeyhiveUpdateTracker] = useState(0);
 
-  // Watch for keyhive updates
+  // Watch for keyhive updates - debounced to avoid excessive re-renders
   useEffect(() => {
+    let timeoutId: number;
     const handler = () => {
-      setKeyhiveUpdateTracker((v) => v + 1);
+      clearTimeout(timeoutId);
+      timeoutId = window.setTimeout(() => {
+        setKeyhiveUpdateTracker((v) => v + 1);
+      }, 100);
     };
 
     keyhiveKit.emitter.on("update", handler);
     return () => {
+      clearTimeout(timeoutId);
       keyhiveKit.emitter.off("update", handler);
     };
   }, [keyhiveKit.emitter]);
@@ -116,6 +143,7 @@ function App({ docUrl, keyhiveKit }: AppProps) {
           selectedDocument={selectedDocUrl}
           syncServer={keyhiveKit.syncServer}
           keyhive={keyhiveKit.keyhive}
+          keyhiveUpdateTracker={keyhiveUpdateTracker}
         />
       </div>
 
@@ -142,13 +170,15 @@ function App({ docUrl, keyhiveKit }: AppProps) {
         {/* Document */}
         <div className="flex-1 overflow-hidden">
           {selectedDocUrl ? (
-            <TaskList
-              docUrl={selectedDocUrl}
-              phonebook={phonebook}
-              keyhive={keyhiveKit.keyhive}
-              identity={identityState}
-              keyhiveUpdateTracker={keyhiveUpdateTracker}
-            />
+            <ErrorBoundary key={`${selectedDocUrl}-${keyhiveUpdateTracker}`}>
+              <TaskList
+                docUrl={selectedDocUrl}
+                phonebook={phonebook}
+                keyhive={keyhiveKit.keyhive}
+                identity={identityState}
+                keyhiveUpdateTracker={keyhiveUpdateTracker}
+              />
+            </ErrorBoundary>
           ) : (
             <div className="flex items-center justify-center h-full text-muted-foreground bg-muted">
               Select or create a document from the sidebar

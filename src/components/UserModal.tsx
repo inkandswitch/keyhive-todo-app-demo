@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Phonebook } from "../phonebook";
 import { Identity } from "../active";
 import blankAvatarImg from "../assets/blankavatar.jpeg";
-import { uint8ArrayToHex } from "@automerge/automerge-keyhive-network-adapter";
+import { uint8ArrayToHex } from "@automerge/automerge-repo-keyhive";
 
 interface UserModalProps {
   isOpen: boolean;
