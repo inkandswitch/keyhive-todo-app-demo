@@ -11,7 +11,7 @@ import { useHash } from "react-use";
 import { AvatarIcon } from "./AvatarIcon";
 import { UserModal } from "./UserModal";
 import { useState, useEffect, Component, type ReactNode } from "react";
-import { KeyhiveKit } from "@automerge/identity";
+import { KeyhiveKit } from "@patchwork/identity";
 import { Phonebook } from "../phonebook";
 import { Identity } from "../active";
 import { uint8ArrayToHex } from "@automerge/automerge-repo-keyhive";
@@ -58,9 +58,11 @@ function App({ docUrl, keyhiveKit }: AppProps) {
     };
 
     keyhiveKit.emitter.on("update", handler);
+    keyhiveKit.emitter.on("ingest", handler);
     return () => {
       clearTimeout(timeoutId);
       keyhiveKit.emitter.off("update", handler);
+      keyhiveKit.emitter.off("ingest", handler);
     };
   }, [keyhiveKit.emitter]);
 

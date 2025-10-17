@@ -1,8 +1,15 @@
 import ReactDOM from "react-dom/client";
 import "./index.css";
 import { Repo, DocHandle } from "@automerge/react/slim";
-import { KeyhiveKit } from "@automerge/identity";
+import { KeyhiveKit } from "@patchwork/identity";
+import { Keyhive } from "@keyhive/keyhive/slim";
 import Frame, { TemporaryAccountInterface } from "./components/Frame.tsx";
+
+declare global {
+  interface Window {
+    keyhive: Keyhive,
+  }
+}
 
 export const plugins = [
   {
@@ -25,6 +32,7 @@ export const plugins = [
         }) {
           console.log("[Demo] Startup");
           const root = ReactDOM.createRoot(element);
+          window.keyhive = keyhiveKit.keyhive;
 
           root.render(
             <Frame

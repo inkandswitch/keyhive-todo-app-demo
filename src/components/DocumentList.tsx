@@ -212,7 +212,7 @@ const DocumentTitle: React.FC<{ docUrl: AutomergeUrl; keyhiveUpdateTracker: numb
             // Call reload to switch the handle's state from unavailable back to loading
             handle.reload();
             handle.request();
-          } else if !(handle.state === 'requesting' || handle.state === 'loading') {
+          } else if (!(handle.state === 'requesting' || handle.state === 'loading')) {
             repo.find(docUrl);
           }
         } else {

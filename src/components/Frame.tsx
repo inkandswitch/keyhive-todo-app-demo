@@ -5,7 +5,7 @@ import {
   RepoContext,
   useRepo,
 } from "@automerge/react/slim";
-import { KeyhiveKit } from "@automerge/identity";
+import { KeyhiveKit } from "@patchwork/identity";
 import App from "./App";
 import { Suspense, useEffect, useState } from "react";
 import { RootDocument } from "../rootDoc";
