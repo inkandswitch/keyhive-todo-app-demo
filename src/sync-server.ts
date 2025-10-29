@@ -10,26 +10,6 @@ export type SyncServer = {
   avatar: Uint8Array;
 };
 
-// export async function syncServerFromContactCard(
-//   contactCardJson: string,
-//   serverPeerId: PeerId,
-//   keyhive: Keyhive,
-// ): Promise<SyncServer> {
-//   const serverContactCard = ContactCard.fromJson(contactCardJson);
-//   const serverIndividual: Individual =
-//     keyhive.receiveContactCard(serverContactCard);
-
-//   const avatarFile = await fetch(new URL("./assets/HAL-9000.webp", import.meta.url).href);
-//   const arrayBuffer = await avatarFile.arrayBuffer();
-//   const avatar = new Uint8Array(arrayBuffer);
-//   return {
-//     individual: serverIndividual,
-//     contactCard: contactCardJson,
-//     peerId: serverPeerId,
-//     avatar: avatar,
-//   };
-// }
-
 export function addServerToPhonebook(server: SyncServer, doc: Phonebook) {
   const serverHexId = uint8ArrayToHex(server.individual.id.toBytes());
   if (!doc[serverHexId]) {

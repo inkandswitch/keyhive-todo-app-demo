@@ -9,9 +9,7 @@ export default defineConfig({
   server: {
     port: 5557,
     watch: {
-      ignored: [
-        "!**/node_modules/@automerge/automerge-repo-keyhive/**",
-      ],
+      ignored: ["!**/node_modules/@automerge/automerge-repo-keyhive/**"],
     },
   },
 
@@ -32,11 +30,7 @@ export default defineConfig({
     },
   },
 
-  plugins: [
-    wasm(),
-    react(),
-    cssInjectedByJsPlugin(),
-  ],
+  plugins: [wasm(), react(), cssInjectedByJsPlugin()],
 
   worker: {
     format: "es",

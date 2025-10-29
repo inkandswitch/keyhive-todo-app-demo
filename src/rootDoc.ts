@@ -19,9 +19,9 @@ export const getOrCreateRoot = async (repo: Repo): Promise<AutomergeUrl> => {
   }
 
   // Otherwise create one and (synchronously) store it
-  console.log("[Demo] Creating root doc")
+  console.log("[Demo] Creating root doc");
   const root = await repo.create2<RootDocument>({ taskLists: [] });
-  console.log("[Demo] Created root doc")
+  console.log("[Demo] Created root doc");
   localStorage.setItem(ROOT_DOC_URL_KEY, root.url);
   return root.url;
 };

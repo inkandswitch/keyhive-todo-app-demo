@@ -11,11 +11,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@automerge/automerge-repo-keyhive": "0.0.0-alpha.65",
-    "@automerge/automerge-repo": "2.4.0-alpha.2",
+    "@automerge/automerge-repo": "2.5.0-alpha.2",
+    "@automerge/automerge-repo-keyhive": "0.0.0-alpha.71",
     "@automerge/react": "2.4.0-alpha.2",
-    "@patchwork/identity": "link:../patchwork-next/packages/identity",
-    "@keyhive/keyhive": "0.0.0-alpha.39",
+    "@keyhive/keyhive": "0.0.0-alpha.40",
     "@noble/hashes": "^2.0.1",
     "clsx": "^2.1.1",
     "react": "^18.3.1",

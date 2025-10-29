@@ -90,7 +90,12 @@ export const TaskList = ({
     return () => {
       cancelled = true;
     };
-  }, [keyhiveUpdateTracker, identity.active.individual.id, keyhiveDocId, keyhive]);
+  }, [
+    keyhiveUpdateTracker,
+    identity.active.individual.id,
+    keyhiveDocId,
+    keyhive,
+  ]);
 
   const canEdit = userAccess === "Write" || userAccess === "Admin";
   const canRead =

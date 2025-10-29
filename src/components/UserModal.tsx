@@ -10,7 +10,9 @@ interface UserModalProps {
   identityState: Identity;
   setIdentityState: React.Dispatch<React.SetStateAction<Identity>>;
   phonebook: Phonebook | undefined;
-  changePhonebook: ((updater: (doc: Phonebook) => void | Error) => void) | undefined;
+  changePhonebook:
+    | ((updater: (doc: Phonebook) => void | Error) => void)
+    | undefined;
   currentName?: string;
   currentAvatarUrl?: string;
 }

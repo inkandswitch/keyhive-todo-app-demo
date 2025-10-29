@@ -4,7 +4,12 @@ import { Access, ContactCard, Keyhive } from "@keyhive/keyhive/slim";
 import { Phonebook } from "../phonebook";
 import { Identity } from "../active";
 import { accessListForDoc, DocAccessList } from "../utilities";
-import { addMemberToDoc, docIdFromAutomergeUrl, revokeMemberFromDoc, uint8ArrayToHex } from "@automerge/automerge-repo-keyhive";
+import {
+  addMemberToDoc,
+  docIdFromAutomergeUrl,
+  revokeMemberFromDoc,
+  uint8ArrayToHex,
+} from "@automerge/automerge-repo-keyhive";
 import blankAvatarImg from "../assets/blankavatar.jpeg";
 
 interface ShareModalProps {
@@ -30,7 +35,9 @@ export function ShareModal({
   const [selectedAccessLevel, setSelectedAccessLevel] = useState("Write");
   const [docAccessList, setDocAccessList] = useState<DocAccessList>({});
   const [isLoadingAccessList, setIsLoadingAccessList] = useState(true);
-  const [currentUserAccess, setCurrentUserAccess] = useState<string | undefined>(undefined);
+  const [currentUserAccess, setCurrentUserAccess] = useState<
+    string | undefined
+  >(undefined);
 
   const keyhiveDocId = useMemo(() => docIdFromAutomergeUrl(docUrl), [docUrl]);
 
@@ -67,7 +74,13 @@ export function ShareModal({
     return () => {
       cancelled = true;
     };
-  }, [keyhiveUpdateTracker, identity.active.individual.id, keyhiveDocId, keyhive, isOpen]);
+  }, [
+    keyhiveUpdateTracker,
+    identity.active.individual.id,
+    keyhiveDocId,
+    keyhive,
+    isOpen,
+  ]);
 
   const accessLevels = ["Pull", "Read", "Write", "Admin"];
   // You can share at your access level and below
@@ -79,7 +92,10 @@ export function ShareModal({
 
   // Reset selectedAccessLevel when sharingOptions changes
   useEffect(() => {
-    if (sharingOptions.length > 0 && !sharingOptions.includes(selectedAccessLevel)) {
+    if (
+      sharingOptions.length > 0 &&
+      !sharingOptions.includes(selectedAccessLevel)
+    ) {
       setSelectedAccessLevel(sharingOptions[sharingOptions.length - 1]);
     }
   }, [sharingOptions, selectedAccessLevel]);
@@ -149,7 +165,10 @@ export function ShareModal({
         const access = Access.tryFromString(selectedAccessLevel.toLowerCase());
 
         if (!access) {
-          console.error("[Demo] Failed to derive Access from:", selectedAccessLevel);
+          console.error(
+            "[Demo] Failed to derive Access from:",
+            selectedAccessLevel,
+          );
           return;
         }
 
