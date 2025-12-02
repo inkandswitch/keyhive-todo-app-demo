@@ -16,8 +16,8 @@ import { Identity } from "../active";
 import {
   AutomergeRepoKeyhive,
   uint8ArrayToHex,
+  ContactCard,
 } from "@automerge/automerge-repo-keyhive";
-import { ContactCard } from "@keyhive/keyhive/slim";
 
 type AppProps = {
   docUrl: AutomergeUrl;
@@ -109,7 +109,7 @@ function App({ docUrl, automergeRepoKeyhive }: AppProps) {
         automergeRepoKeyhive.syncServer.contactCard,
       );
       if (serverContactCard) {
-        const serverHexId = uint8ArrayToHex(serverContactCard.id.bytes);
+        const serverHexId = uint8ArrayToHex(serverContactCard.individualId.bytes);
         if (!phonebook[serverHexId]) {
           // Load HAL avatar and add to phonebook
           fetch(halAvatarUrl)

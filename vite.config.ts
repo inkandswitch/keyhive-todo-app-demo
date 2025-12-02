@@ -18,7 +18,7 @@ export default defineConfig({
     target: "esnext",
     assetsInlineLimit: 100000, // Inline assets smaller than 100kb as base64
     rollupOptions: {
-      external: ["@keyhive/keyhive", "@keyhive/keyhive/slim"],
+      external: ["@automerge/automerge-repo-keyhive"],
       input: "./src/main.tsx",
       output: {
         format: "es",

@@ -1,10 +1,12 @@
 import { useState, useEffect, useMemo } from "react";
 import { AutomergeUrl } from "@automerge/react/slim";
-import { Access, ContactCard, Keyhive } from "@keyhive/keyhive/slim";
 import { Phonebook } from "../phonebook";
 import { Identity } from "../active";
 import { accessListForDoc, DocAccessList } from "../utilities";
 import {
+  Access,
+  ContactCard,
+  Keyhive,
   addMemberToDoc,
   docIdFromAutomergeUrl,
   revokeMemberFromDoc,

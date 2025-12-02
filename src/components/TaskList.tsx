@@ -1,10 +1,9 @@
 import { AutomergeUrl, useDocument, updateText } from "@automerge/react/slim";
 import { ShareModal } from "./ShareModal";
 import { useState, useEffect, useMemo } from "react";
-import { Keyhive } from "@keyhive/keyhive/slim";
+import { Keyhive, docIdFromAutomergeUrl } from "@automerge/automerge-repo-keyhive";
 import { Phonebook } from "../phonebook";
 import { Identity } from "../active";
-import { docIdFromAutomergeUrl } from "@automerge/automerge-repo-keyhive";
 
 export interface Task {
   title: string;

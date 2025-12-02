@@ -1,9 +1,7 @@
 import ReactDOM from "react-dom/client";
 import "./index.css";
-import { Keyhive } from "@keyhive/keyhive/slim";
+import { Keyhive } from "@automerge/automerge-repo-keyhive";
 import Frame from "./components/Frame.tsx";
-
-console.log("Hi! ---------------");
 
 declare global {
   interface Window {
@@ -18,15 +16,15 @@ export const plugins = [
     name: "Keyhive TODO Demo",
     supportedDataTypes: ["identity"],
     async load() {
-      return (handle: any, element: any) => {
+      return (_handle: any, element: any) => {
         console.log("[Demo] Startup");
         const root = ReactDOM.createRoot(element);
-        window.keyhive = handle.hive.keyhive;
+        window.keyhive = element.hive.keyhive;
 
         root.render(
           <Frame
-            automergeRepoKeyhive={handle.hive}
-            repo={handle.repo}
+            automergeRepoKeyhive={element.hive}
+            repo={element.repo}
           />,
         );
         return () => root.unmount();

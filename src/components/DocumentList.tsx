@@ -9,8 +9,7 @@ import {
 import { initTaskList, TaskList } from "./TaskList";
 import { RootDocument } from "../rootDoc";
 import { useState, useEffect } from "react";
-import { Access, ContactCard, type Keyhive } from "@keyhive/keyhive/slim";
-import { addMemberToDoc, SyncServer } from "@automerge/automerge-repo-keyhive";
+import { Access, ContactCard, Keyhive, addMemberToDoc, SyncServer } from "@automerge/automerge-repo-keyhive";
 
 type AccessString = "admin" | "write" | "read" | "pull";
 

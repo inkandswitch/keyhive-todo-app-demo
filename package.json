@@ -12,9 +12,8 @@
   },
   "dependencies": {
     "@automerge/automerge-repo": "2.5.0-alpha.2",
-    "@automerge/automerge-repo-keyhive": "0.0.0-alpha.71",
-    "@automerge/react": "2.4.0-alpha.2",
-    "@keyhive/keyhive": "0.0.0-alpha.40",
+    "@automerge/automerge-repo-keyhive": "0.1.0-alpha.9",
+    "@automerge/react": "2.5.0-alpha.2",
     "@noble/hashes": "^2.0.1",
     "clsx": "^2.1.1",
     "react": "^18.3.1",
