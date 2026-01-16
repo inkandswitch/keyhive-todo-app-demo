@@ -5,6 +5,9 @@ import wasm from "vite-plugin-wasm";
 import cssInjectedByJsPlugin from "vite-plugin-css-injected-by-js";
 
 export default defineConfig({
+  define: {
+    __SYNC_SERVER__: JSON.stringify(process.env.SYNC_SERVER || "ws://localhost:3030"),
+  },
   base: "./",
   server: {
     port: 5557,

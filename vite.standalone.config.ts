@@ -4,6 +4,9 @@ import react from "@vitejs/plugin-react";
 import wasm from "vite-plugin-wasm";
 
 export default defineConfig({
+  define: {
+    __SYNC_SERVER__: JSON.stringify(process.env.SYNC_SERVER || "ws://localhost:3030"),
+  },
   base: "./",
   server: {
     port: 5557,

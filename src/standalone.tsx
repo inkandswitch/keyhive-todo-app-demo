@@ -17,6 +17,7 @@ declare global {
   interface Window {
     hive: AutomergeRepoKeyhive;
   }
+  const __SYNC_SERVER__: string;
 }
 
 async function startStandalone() {
@@ -26,10 +27,7 @@ async function startStandalone() {
   // setPanicHook();
 
   const storage = new IndexedDBStorageAdapter();
-  const networkAdapter = new BrowserWebSocketClientAdapter(
-    "wss://keyhive.sync.automerge.org"
-    // "ws://localhost:3089"
-  );
+  const networkAdapter = new BrowserWebSocketClientAdapter(__SYNC_SERVER__);
   const peerIdSuffix = `keyhive-demo-${Math.random().toString(36).slice(2)}`;
 
   const automergeRepoKeyhive = await initializeAutomergeRepoKeyhive({
