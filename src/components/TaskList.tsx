@@ -1,10 +1,9 @@
 import { AutomergeUrl, useDocument, updateText } from "@automerge/react/slim";
 import { ShareModal } from "./ShareModal";
 import { useState, useEffect, useMemo } from "react";
-import { Keyhive } from "@keyhive/keyhive/slim";
+import { AutomergeRepoKeyhive, docIdFromAutomergeUrl } from "@automerge/automerge-repo-keyhive";
 import { Phonebook } from "../phonebook";
 import { Identity } from "../active";
-import { docIdFromAutomergeUrl } from "@automerge/automerge-repo-keyhive";
 
 export interface Task {
   title: string;
@@ -27,7 +26,7 @@ export function initTaskList() {
 interface TaskListProps {
   docUrl: AutomergeUrl;
   phonebook: Phonebook | undefined;
-  keyhive: Keyhive;
+  hive: AutomergeRepoKeyhive;
   identity: Identity;
   keyhiveUpdateTracker: number;
 }
@@ -35,7 +34,7 @@ interface TaskListProps {
 export const TaskList = ({
   docUrl,
   phonebook,
-  keyhive,
+  hive,
   identity,
   keyhiveUpdateTracker,
 }: TaskListProps) => {
@@ -65,7 +64,7 @@ export const TaskList = ({
       }
 
       try {
-        const access = await keyhive.accessForDoc(id, keyhiveDocId);
+        const access = await hive.accessForDoc(id, keyhiveDocId);
         if (cancelled) return;
 
         if (access) {
@@ -90,7 +89,12 @@ export const TaskList = ({
     return () => {
       cancelled = true;
     };
-  }, [keyhiveUpdateTracker, identity.active.individual.id, keyhiveDocId, keyhive]);
+  }, [
+    keyhiveUpdateTracker,
+    identity.active.individual.id,
+    keyhiveDocId,
+    hive,
+  ]);
 
   const canEdit = userAccess === "Write" || userAccess === "Admin";
   const canRead =
@@ -108,9 +112,20 @@ export const TaskList = ({
                     {doc.title}
                   </h1>
                 </div>
-                <h2 className="text-sm text-muted-foreground">
-                  List ID: {docUrl.replace("automerge:", "")}
-                </h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-sm text-muted-foreground">
+                    Doc ID: {docUrl.replace("automerge:", "")}
+                  </h2>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(docUrl.replace("automerge:", ""));
+                    }}
+                    className="px-2 py-1 text-xs font-medium text-secondary-foreground bg-secondary border border-border rounded hover:bg-accent"
+                  >
+                    Copy
+                  </button>
+                </div>
               </div>
               <div className="text-center py-8">
                 <p className="text-muted-foreground">
@@ -164,9 +179,20 @@ export const TaskList = ({
                   Share
                 </button>
               </div>
-              <h2 className="text-sm text-muted-foreground">
-                List ID: {docUrl.replace("automerge:", "")}
-              </h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm text-muted-foreground">
+                  Doc ID: {docUrl.replace("automerge:", "")}
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(docUrl.replace("automerge:", ""));
+                  }}
+                  className="px-2 py-1 text-xs font-medium text-secondary-foreground bg-secondary border border-border rounded hover:bg-accent"
+                >
+                  Copy
+                </button>
+              </div>
             </div>
 
             {canEdit && (
@@ -248,7 +274,7 @@ export const TaskList = ({
         isOpen={isShareModalOpen}
         docUrl={docUrl}
         phonebook={phonebook}
-        keyhive={keyhive}
+        hive={hive}
         identity={identity}
         keyhiveUpdateTracker={keyhiveUpdateTracker}
         onClose={() => setIsShareModalOpen(false)}

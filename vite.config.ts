@@ -5,13 +5,14 @@ import wasm from "vite-plugin-wasm";
 import cssInjectedByJsPlugin from "vite-plugin-css-injected-by-js";
 
 export default defineConfig({
+  define: {
+    __SYNC_SERVER__: JSON.stringify(process.env.SYNC_SERVER || "ws://localhost:3030"),
+  },
   base: "./",
   server: {
     port: 5557,
     watch: {
-      ignored: [
-        "!**/node_modules/@automerge/automerge-repo-keyhive/**",
-      ],
+      ignored: ["!**/node_modules/@automerge/automerge-repo-keyhive/**"],
     },
   },
 
@@ -20,7 +21,28 @@ export default defineConfig({
     target: "esnext",
     assetsInlineLimit: 100000, // Inline assets smaller than 100kb as base64
     rollupOptions: {
-      external: ["@keyhive/keyhive", "@keyhive/keyhive/slim"],
+      external: [
+        "@automerge/automerge",
+        "@automerge/automerge/slim",
+        "@automerge/automerge-repo",
+        "@automerge/automerge-repo/slim",
+        "@automerge/automerge-repo-keyhive",
+        "@keyhive/keyhive",
+        "@keyhive/keyhive/slim",
+        "@inkandswitch/patchwork-bootloader",
+        "@inkandswitch/patchwork-elements",
+        "@inkandswitch/patchwork-filesystem",
+        "@inkandswitch/patchwork-plugins",
+
+        // sad
+        "@codemirror/commands",
+        "@codemirror/state",
+        "@codemirror/view",
+        "@codemirror/language",
+
+        "@lezer/common",
+        "@marijn/find-cluster-break",
+      ],
       input: "./src/main.tsx",
       output: {
         format: "es",
@@ -32,11 +54,7 @@ export default defineConfig({
     },
   },
 
-  plugins: [
-    wasm(),
-    react(),
-    cssInjectedByJsPlugin(),
-  ],
+  plugins: [wasm(), react(), cssInjectedByJsPlugin()],
 
   worker: {
     format: "es",

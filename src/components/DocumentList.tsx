@@ -9,8 +9,7 @@ import {
 import { initTaskList, TaskList } from "./TaskList";
 import { RootDocument } from "../rootDoc";
 import { useState, useEffect } from "react";
-import { Access, ContactCard, type Keyhive } from "@keyhive/keyhive/slim";
-import { addMemberToDoc, SyncServer } from "@automerge/automerge-repo-keyhive";
+import { Access, AutomergeRepoKeyhive, ContactCard, SyncServer } from "@automerge/automerge-repo-keyhive";
 
 type AccessString = "admin" | "write" | "read" | "pull";
 
@@ -19,7 +18,7 @@ interface DocumentListProps {
   selectedDocument: AutomergeUrl | null;
   onSelectDocument: (docUrl: AutomergeUrl | null) => void;
   syncServer: SyncServer;
-  keyhive: Keyhive;
+  hive: AutomergeRepoKeyhive;
   keyhiveUpdateTracker: number;
 }
 
@@ -28,7 +27,7 @@ export const DocumentList = ({
   selectedDocument,
   onSelectDocument,
   syncServer,
-  keyhive,
+  hive,
   keyhiveUpdateTracker,
 }: DocumentListProps) => {
   const repo = useRepo();
@@ -54,7 +53,7 @@ export const DocumentList = ({
     try {
       const membersToAdd: [ContactCard, AccessString][] = [];
 
-      const serverContactCard = ContactCard.fromJson(syncServer.contactCard);
+      const serverContactCard = ContactCard.fromJson(syncServer.contactCard.toJson());
       if (serverContactCard) {
         membersToAdd.push([serverContactCard, "pull"]);
       } else {
@@ -69,14 +68,11 @@ export const DocumentList = ({
           console.error("[Demo] Failed to derive Access");
           continue;
         }
-        console.debug(`[Demo] calling addMemberToDoc with access: ${access.toString()}`);
+        console.debug(
+          `[Demo] calling addMemberToDoc with access: ${access.toString()}`,
+        );
         try {
-          await addMemberToDoc(
-            keyhive,
-            newTaskList.url,
-            contactCard,
-            access,
-          );
+          await hive.addMemberToDoc(newTaskList.url, contactCard, access);
           console.debug("[Demo] called addMemberToDoc");
         } catch (err) {
           console.error(`[Demo] addMemberToDoc failed: ${err}`);
@@ -146,7 +142,10 @@ export const DocumentList = ({
               onClick={() => onSelectDocument(docUrl)}
             >
               <div className="flex-grow min-w-0">
-                <DocumentTitle docUrl={docUrl} keyhiveUpdateTracker={keyhiveUpdateTracker} />
+                <DocumentTitle
+                  docUrl={docUrl}
+                  keyhiveUpdateTracker={keyhiveUpdateTracker}
+                />
               </div>
               <button
                 className={`ml-2 w-5 h-5 flex items-center justify-center text-muted-foreground bg-transparent border-none rounded cursor-pointer transition-all duration-200 hover:text-destructive hover:bg-destructive/10 hover:opacity-100 ${
@@ -196,7 +195,10 @@ export const DocumentList = ({
   );
 };
 
-const DocumentTitle: React.FC<{ docUrl: AutomergeUrl; keyhiveUpdateTracker: number }> = React.memo(
+const DocumentTitle: React.FC<{
+  docUrl: AutomergeUrl;
+  keyhiveUpdateTracker: number;
+}> = React.memo(
   ({ docUrl, keyhiveUpdateTracker }) => {
     const repo = useRepo();
     const [doc] = useDocument<TaskList>(docUrl);
@@ -204,7 +206,9 @@ const DocumentTitle: React.FC<{ docUrl: AutomergeUrl; keyhiveUpdateTracker: numb
     // Retry loading the document when keyhive updates
     useEffect(() => {
       if (!doc) {
-        console.debug(`[Demo] Retrying document load for ${docUrl} (keyhive update ${keyhiveUpdateTracker})`);
+        console.debug(
+          `[Demo] Retrying document load for ${docUrl} (keyhive update ${keyhiveUpdateTracker})`,
+        );
         const documentId = docUrl.replace("automerge:", "") as DocumentId;
         const handle = repo.handles[documentId];
         if (handle) {
@@ -212,7 +216,9 @@ const DocumentTitle: React.FC<{ docUrl: AutomergeUrl; keyhiveUpdateTracker: numb
             // Call reload to switch the handle's state from unavailable back to loading
             handle.reload();
             handle.request();
-          } else if !(handle.state === 'requesting' || handle.state === 'loading') {
+          } else if (
+            !(handle.state === "requesting" || handle.state === "loading")
+          ) {
             repo.find(docUrl);
           }
         } else {
@@ -224,7 +230,11 @@ const DocumentTitle: React.FC<{ docUrl: AutomergeUrl; keyhiveUpdateTracker: numb
     if (!doc) {
       const docId = docUrl.replace("automerge:", "");
       const shortId = docId.length > 8 ? `${docId.slice(0, 8)}...` : docId;
-      return <span className="text-sm font-medium text-muted-foreground">{shortId} loading...</span>;
+      return (
+        <span className="text-sm font-medium text-muted-foreground">
+          {shortId} loading...
+        </span>
+      );
     }
 
     const title = doc.title || "Untitled Task List";
@@ -232,6 +242,9 @@ const DocumentTitle: React.FC<{ docUrl: AutomergeUrl; keyhiveUpdateTracker: numb
   },
   (prevProps, nextProps) => {
     // Only re-render if docUrl or keyhiveUpdateTracker changes
-    return prevProps.docUrl === nextProps.docUrl && prevProps.keyhiveUpdateTracker === nextProps.keyhiveUpdateTracker;
-  }
+    return (
+      prevProps.docUrl === nextProps.docUrl &&
+      prevProps.keyhiveUpdateTracker === nextProps.keyhiveUpdateTracker
+    );
+  },
 );

@@ -11,18 +11,23 @@ import { useHash } from "react-use";
 import { AvatarIcon } from "./AvatarIcon";
 import { UserModal } from "./UserModal";
 import { useState, useEffect, Component, type ReactNode } from "react";
-import { KeyhiveKit } from "@automerge/identity";
 import { Phonebook } from "../phonebook";
 import { Identity } from "../active";
-import { uint8ArrayToHex } from "@automerge/automerge-repo-keyhive";
-import { ContactCard } from "@keyhive/keyhive/slim";
+import {
+  AutomergeRepoKeyhive,
+  uint8ArrayToHex,
+  ContactCard,
+} from "@automerge/automerge-repo-keyhive";
 
 type AppProps = {
   docUrl: AutomergeUrl;
-  keyhiveKit: KeyhiveKit;
+  automergeRepoKeyhive: AutomergeRepoKeyhive;
 };
 
-class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+class ErrorBoundary extends Component<
+  { children: ReactNode },
+  { hasError: boolean }
+> {
   constructor(props: { children: ReactNode }) {
     super(props);
     this.state = { hasError: false };
@@ -44,7 +49,7 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
   }
 }
 
-function App({ docUrl, keyhiveKit }: AppProps) {
+function App({ docUrl, automergeRepoKeyhive }: AppProps) {
   const [keyhiveUpdateTracker, setKeyhiveUpdateTracker] = useState(0);
 
   // Watch for keyhive updates - debounced to avoid excessive re-renders
@@ -57,18 +62,20 @@ function App({ docUrl, keyhiveKit }: AppProps) {
       }, 100);
     };
 
-    keyhiveKit.emitter.on("update", handler);
+    automergeRepoKeyhive.emitter.on("update", handler);
+    automergeRepoKeyhive.emitter.on("ingest", handler);
     return () => {
       clearTimeout(timeoutId);
-      keyhiveKit.emitter.off("update", handler);
+      automergeRepoKeyhive.emitter.off("update", handler);
+      automergeRepoKeyhive.emitter.off("ingest", handler);
     };
-  }, [keyhiveKit.emitter]);
+  }, [automergeRepoKeyhive.emitter]);
 
   const phonebookUrl = "automerge:4LC8WQxBbLH92x9crDq5HwhUYopU" as AutomergeUrl;
   const identity: Identity = {
-    active: keyhiveKit.active,
+    active: automergeRepoKeyhive.active,
     contact: {
-      peerId: keyhiveKit.active.peerId,
+      peerId: automergeRepoKeyhive.active.peerId,
       avatar: null,
     },
   };
@@ -78,7 +85,9 @@ function App({ docUrl, keyhiveKit }: AppProps) {
   // Load user's saved info from phonebook on startup
   useEffect(() => {
     if (phonebook && identityState.active.individual) {
-      const userHexId = uint8ArrayToHex(identityState.active.individual.id.toBytes());
+      const userHexId = uint8ArrayToHex(
+        identityState.active.individual.id.toBytes(),
+      );
       const savedContact = phonebook[userHexId];
       if (savedContact) {
         setIdentityState((prev) => ({
@@ -95,11 +104,12 @@ function App({ docUrl, keyhiveKit }: AppProps) {
 
   // Add sync server to phonebook if not already there
   useEffect(() => {
-    if (phonebook && keyhiveKit.syncServer) {
-      const serverContactCard = ContactCard.fromJson(keyhiveKit.syncServer.contactCard);
-      // const serverIndividual = getSyncServerIndividual(keyhiveKit.syncServer, keyhiveKit.keyhive);
+    if (phonebook && automergeRepoKeyhive.syncServer) {
+      const serverContactCard = ContactCard.fromJson(
+        automergeRepoKeyhive.syncServer.contactCard.toJson(),
+      );
       if (serverContactCard) {
-        const serverHexId = uint8ArrayToHex(serverContactCard.id.bytes);
+        const serverHexId = uint8ArrayToHex(serverContactCard.individualId.bytes);
         if (!phonebook[serverHexId]) {
           // Load HAL avatar and add to phonebook
           fetch(halAvatarUrl)
@@ -107,7 +117,7 @@ function App({ docUrl, keyhiveKit }: AppProps) {
             .then((buffer) => {
               changePhonebook((doc) => {
                 doc[serverHexId] = {
-                  peerId: keyhiveKit.syncServer.peerId,
+                  peerId: automergeRepoKeyhive.syncServer.peerId,
                   name: "Demo Sync Server",
                   avatar: new Uint8Array(buffer),
                 };
@@ -116,7 +126,12 @@ function App({ docUrl, keyhiveKit }: AppProps) {
         }
       }
     }
-  }, [phonebook, keyhiveKit.syncServer, keyhiveKit.keyhive, changePhonebook]);
+  }, [
+    phonebook,
+    automergeRepoKeyhive.syncServer,
+    automergeRepoKeyhive.keyhive,
+    changePhonebook,
+  ]);
 
   const [hash, setHash] = useHash();
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
@@ -141,8 +156,8 @@ function App({ docUrl, keyhiveKit }: AppProps) {
             }
           }}
           selectedDocument={selectedDocUrl}
-          syncServer={keyhiveKit.syncServer}
-          keyhive={keyhiveKit.keyhive}
+          syncServer={automergeRepoKeyhive.syncServer}
+          hive={automergeRepoKeyhive}
           keyhiveUpdateTracker={keyhiveUpdateTracker}
         />
       </div>
@@ -152,11 +167,7 @@ function App({ docUrl, keyhiveKit }: AppProps) {
         {/* Header */}
         <header className="p-6 border-b border-foreground/10 bg-muted flex justify-center relative">
           <h1 className="text-2xl font-semibold flex items-center text-foreground">
-            <img
-              src={keyhiveLogo}
-              alt="Keyhive logo"
-              id="keyhive-logo"
-            />
+            <img src={keyhiveLogo} alt="Keyhive logo" id="keyhive-logo" />
             Keyhive Demo
           </h1>
           <div className="absolute right-6 top-1/2 -translate-y-1/2">
@@ -170,11 +181,11 @@ function App({ docUrl, keyhiveKit }: AppProps) {
         {/* Document */}
         <div className="flex-1 overflow-hidden">
           {selectedDocUrl ? (
-            <ErrorBoundary key={`${selectedDocUrl}-${keyhiveUpdateTracker}`}>
+            <ErrorBoundary key={selectedDocUrl}>
               <TaskList
                 docUrl={selectedDocUrl}
                 phonebook={phonebook}
-                keyhive={keyhiveKit.keyhive}
+                hive={automergeRepoKeyhive}
                 identity={identityState}
                 keyhiveUpdateTracker={keyhiveUpdateTracker}
               />

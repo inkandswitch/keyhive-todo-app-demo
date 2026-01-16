@@ -1,41 +1,35 @@
 import ReactDOM from "react-dom/client";
 import "./index.css";
-import { Repo, DocHandle } from "@automerge/react/slim";
-import { KeyhiveKit } from "@automerge/identity";
-import Frame, { TemporaryAccountInterface } from "./components/Frame.tsx";
+import { AutomergeRepoKeyhive, MODULE_INSTANCE_ID, isWasmInitialized } from "@automerge/automerge-repo-keyhive";
+import Frame from "./components/Frame.tsx";
+
+declare global {
+  interface Window {
+    hive: AutomergeRepoKeyhive;
+  }
+}
 
 export const plugins = [
   {
     type: "patchwork:tool",
     id: "keyhive-todo-demo",
     name: "Keyhive TODO Demo",
-    supportedDataTypes: ["identity"],
+    supportedDatatypes: ["identity"],
     async load() {
-      return {
-        render({
-          element,
-          handle,
-          repo,
-          keyhiveKit,
-        }: {
-          element: HTMLElement;
-          handle: DocHandle<TemporaryAccountInterface>;
-          repo: Repo;
-          keyhiveKit: KeyhiveKit;
-        }) {
-          console.log("[Demo] Startup");
-          const root = ReactDOM.createRoot(element);
+      console.log(`[Demo] Plugin sees module instance: ${MODULE_INSTANCE_ID}, WASM initialized: ${isWasmInitialized()}`);
+      return (_handle: any, element: any) => {
+        console.log("[Demo] Startup");
+        const root = ReactDOM.createRoot(element);
+        window.hive = element.hive;
 
-          root.render(
-            <Frame
-              accountHandle={handle}
-              keyhiveKit={keyhiveKit}
-              repo={repo}
-            />,
-          );
-          return () => root.unmount();
-        },
-      };
+        root.render(
+          <Frame
+            automergeRepoKeyhive={element.hive}
+            repo={element.repo}
+          />,
+        );
+        return () => root.unmount();
+      }
     },
   },
 ];

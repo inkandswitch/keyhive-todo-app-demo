@@ -1,21 +1,24 @@
 {
-  "name": "hello-automerge-repo",
+  "name": "keyhive-demo",
   "private": true,
   "version": "0.0.1",
   "type": "module",
   "main": "./dist/main.js",
   "scripts": {
     "dev": "vite",
+    "dev:standalone": "vite --config vite.standalone.config.ts",
     "build": "tsc && vite build",
+    "build:standalone": "tsc && vite build --config vite.standalone.config.ts",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "preview:standalone": "vite preview --outDir dist"
   },
   "dependencies": {
-    "@automerge/automerge-repo-keyhive": "0.0.0-alpha.56",
-    "@automerge/automerge-repo": "2.4.0-alpha.2",
-    "@automerge/react": "2.4.0-alpha.2",
-    "@automerge/identity": "link:../gaios/packages/identity",
-    "@keyhive/keyhive": "0.0.0-alpha.35",
+    "@automerge/automerge-repo": "2.5.2-alpha.0",
+    "@automerge/automerge-repo-keyhive": "0.1.0-alpha.16x",
+    "@automerge/automerge-repo-network-websocket": "2.5.2-alpha.0",
+    "@automerge/automerge-repo-storage-indexeddb": "2.5.2-alpha.0",
+    "@automerge/react": "2.5.2-alpha.0",
     "@noble/hashes": "^2.0.1",
     "clsx": "^2.1.1",
     "react": "^18.3.1",
