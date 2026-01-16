@@ -112,9 +112,20 @@ export const TaskList = ({
                     {doc.title}
                   </h1>
                 </div>
-                <h2 className="text-sm text-muted-foreground">
-                  List ID: {docUrl.replace("automerge:", "")}
-                </h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-sm text-muted-foreground">
+                    Doc ID: {docUrl.replace("automerge:", "")}
+                  </h2>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(docUrl.replace("automerge:", ""));
+                    }}
+                    className="px-2 py-1 text-xs font-medium text-secondary-foreground bg-secondary border border-border rounded hover:bg-accent"
+                  >
+                    Copy
+                  </button>
+                </div>
               </div>
               <div className="text-center py-8">
                 <p className="text-muted-foreground">
@@ -168,9 +179,20 @@ export const TaskList = ({
                   Share
                 </button>
               </div>
-              <h2 className="text-sm text-muted-foreground">
-                List ID: {docUrl.replace("automerge:", "")}
-              </h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm text-muted-foreground">
+                  Doc ID: {docUrl.replace("automerge:", "")}
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(docUrl.replace("automerge:", ""));
+                  }}
+                  className="px-2 py-1 text-xs font-medium text-secondary-foreground bg-secondary border border-border rounded hover:bg-accent"
+                >
+                  Copy
+                </button>
+              </div>
             </div>
 
             {canEdit && (

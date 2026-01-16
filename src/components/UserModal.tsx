@@ -229,6 +229,15 @@ export function UserModal({
               <div className="w-full px-3 py-2 bg-muted text-muted-foreground rounded-md text-sm font-mono break-all">
                 {identityState.active.contactCard.toJson()}
               </div>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(identityState.active.contactCard.toJson());
+                }}
+                className="mt-2 px-3 py-1.5 text-sm font-medium text-secondary-foreground bg-secondary border border-border rounded-md hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring"
+              >
+                Copy to Clipboard
+              </button>
             </div>
 
             <div className="flex justify-end space-x-3 pt-4">

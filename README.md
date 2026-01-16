@@ -2,8 +2,11 @@
 
 A React app demonstrating how [keyhive](https://github.com/inkandswitch/keyhive) might be used.
 
-## Installation
+## Run in standalone mode
 
-Clone the project, install its dependencies (`pnpm i`), and run `pnpm dev` to start the local dev server.
+```
+pnpm install
+pnpm dev:standalone
+```
 
-Navigate to http://localhost:5557 to see the app running.
+If it doesn't open automatically, navigate to http://localhost:5557 to see the app running.

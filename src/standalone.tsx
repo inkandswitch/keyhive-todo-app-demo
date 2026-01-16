@@ -23,11 +23,12 @@ async function startStandalone() {
   console.log("[Demo] Initializing standalone mode");
 
   initKeyhiveWasm();
-  setPanicHook();
+  // setPanicHook();
 
   const storage = new IndexedDBStorageAdapter();
   const networkAdapter = new BrowserWebSocketClientAdapter(
-    "ws://localhost:3089"
+    "wss://keyhive.sync.automerge.org"
+    // "ws://localhost:3089"
   );
   const peerIdSuffix = `keyhive-demo-${Math.random().toString(36).slice(2)}`;
 
@@ -37,6 +38,7 @@ async function startStandalone() {
     networkAdapter,
     automaticArchiveIngestion: true,
     onlyShareWithHardcodedServerPeerId: true,
+    cacheHashes: true,
   });
 
   const repo = new Repo({
@@ -48,6 +50,8 @@ async function startStandalone() {
     },
     idFactory: automergeRepoKeyhive.idFactory,
   });
+
+  automergeRepoKeyhive.linkRepo(repo);
 
   window.hive = automergeRepoKeyhive;
 
