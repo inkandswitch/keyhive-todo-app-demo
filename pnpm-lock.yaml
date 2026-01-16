@@ -12,14 +12,20 @@ importers:
   .:
     dependencies:
       '@automerge/automerge-repo':
-        specifier: 2.5.0-alpha.2
-        version: 2.5.0-alpha.2
+        specifier: 2.5.2-alpha.0
+        version: 2.5.2-alpha.0
       '@automerge/automerge-repo-keyhive':
         specifier: link:../automerge-repo-keyhive
         version: link:../automerge-repo-keyhive
+      '@automerge/automerge-repo-network-websocket':
+        specifier: 2.5.2-alpha.0
+        version: 2.5.2-alpha.0
+      '@automerge/automerge-repo-storage-indexeddb':
+        specifier: 2.5.2-alpha.0
+        version: 2.5.2-alpha.0
       '@automerge/react':
-        specifier: 2.5.0-alpha.2
-        version: 2.5.0-alpha.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: 2.5.2-alpha.0
+        version: 2.5.2-alpha.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@noble/hashes':
         specifier: ^2.0.1
         version: 2.0.1
@@ -74,10 +80,10 @@ importers:
         version: 8.5.6
       prettier:
         specifier: ^3.6.2
-        version: 3.7.3
+        version: 3.7.4
       tailwindcss:
         specifier: ^3.4.17
-        version: 3.4.18
+        version: 3.4.19
       typescript:
         specifier: ^5.9.2
         version: 5.9.3
@@ -94,32 +100,32 @@ packages:
     resolution: {integrity: sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw==}
     engines: {node: '>=10'}
 
-  '@automerge/automerge-repo-network-broadcastchannel@2.5.0-alpha.2':
-    resolution: {integrity: sha512-8KuVhWDozLj6wi8Pnls6fSESdEcNBJSPoSvLTPbP3gddssvihErrB4nu2EF4l0lSAapLE2k1JVUDiDNKmUiwOQ==}
+  '@automerge/automerge-repo-network-broadcastchannel@2.5.2-alpha.0':
+    resolution: {integrity: sha512-/i0N5GHFz6wKPmP93qxzgVZOe3xX5H1DRAzBcZLm94DD5884lW7U+tD678jQ1EbKSaFvT4MTW1urJPkN/PDcmw==}
 
-  '@automerge/automerge-repo-network-messagechannel@2.5.0-alpha.2':
-    resolution: {integrity: sha512-5eNkpLGpoZFZgXdODYdy9iwFJCMHYj0tz6VZoTT9gacCj4Fl9D39W73NnKGxrc0OlIssT2fv1Ytyl7Ts3wZNIg==}
+  '@automerge/automerge-repo-network-messagechannel@2.5.2-alpha.0':
+    resolution: {integrity: sha512-YOffBtxyHsw75hsfe2gztQ3qiqGs/Y7OHCJqktNIksVedZwhrKwd+nvfpSG8y9v2Q0soLRXMaToxEGDCistIUA==}
 
-  '@automerge/automerge-repo-network-websocket@2.5.0-alpha.2':
-    resolution: {integrity: sha512-EtdsSA9PhuiWWbvT36DGylBeGCL7Aop8nSe4FrBYchBCWpqqZOBLdbxD0crwbCUwTBTJy76pXhSHjObQi0y4zQ==}
+  '@automerge/automerge-repo-network-websocket@2.5.2-alpha.0':
+    resolution: {integrity: sha512-r6oDOW7CztDEZ4qaxqXXMPMjyXQFr1BXQ8rRmgT+I7QhZncTALvX2mZWzjwMHpuLY6wChg4MHYnA2lAFe7ALUg==}
 
-  '@automerge/automerge-repo-react-hooks@2.5.0-alpha.2':
-    resolution: {integrity: sha512-1VAkWHGeKr1y43uqwqBeewL7NK0amERw/3vm4aLDmYx5oAn7w2c+cPc+HBu4m+VTaYDquTLQaaQvo6TFs+wHCg==}
+  '@automerge/automerge-repo-react-hooks@2.5.2-alpha.0':
+    resolution: {integrity: sha512-msjr9GF33X2iHEtcYidC4E9sEzraWI9VvAhIlOgxiYCSWMz35wvh+C0xARj6Zn+lPFzqsMOok55aJhGGRXgp9A==}
     peerDependencies:
       react: ^18.0.0 || ^19.0.0
       react-dom: ^18.0.0 || ^19.0.0
 
-  '@automerge/automerge-repo-storage-indexeddb@2.5.0-alpha.2':
-    resolution: {integrity: sha512-8NMq64tAIMqIL1+lrBBlDBmIE0Joo8t9VrBK7mGdZerMph9+RDTIcZkZiI7ozY70Ya614OWjmjjuRnPH39xAsQ==}
+  '@automerge/automerge-repo-storage-indexeddb@2.5.2-alpha.0':
+    resolution: {integrity: sha512-LS0tGlQJqVB99dJ8zNpjqtktxFC5R+3zFOYcfmjEnDKb9DursEiJ1OXQzlFTGWjb8gwMQ/xwLufeyDKDjBIX3g==}
 
-  '@automerge/automerge-repo@2.5.0-alpha.2':
-    resolution: {integrity: sha512-Sjl1CaD4IpmboNIG9/EL9Run+AKrL8/1h3Om1NZp9syBnJN8OWjeG4ttpQce6k8HdPyl8sllAHYy8/Q4Ukh39w==}
+  '@automerge/automerge-repo@2.5.2-alpha.0':
+    resolution: {integrity: sha512-Q30SZRTlCaXj///S7Kx5+hSepJ1afcvjfrC9d0o0qXLwuVJ3+UL6UQgSFS12c8b5y9bInCh6+Po5pFYx09j/Dw==}
 
   '@automerge/automerge@3.2.1':
     resolution: {integrity: sha512-xsEZlZe8lWyVCbD7Z7roH4X6ZKlRxMmmumb0M5CuxJWptUEfYsf+1z9lFEJh4aDBbWTLAgxsXd+TBi6jKTj0+g==}
 
-  '@automerge/react@2.5.0-alpha.2':
-    resolution: {integrity: sha512-IBBzYKt0QCL2pYasyNMdAeZH/YQff5ewo1nk6RzbheMmwZ7u6V84E6eoye9mgDK/jtiokVFxVUObI+WBcjHK0g==}
+  '@automerge/react@2.5.2-alpha.0':
+    resolution: {integrity: sha512-sUHa/g50n2lDxGq7DcM0BG8Y0ujk2opWUyrinRcp1EsmV6Jx6l1+xdz8qq1Qfi+suDacQK9x7HJr43rFjVAxhA==}
     peerDependencies:
       react: ^18.0.0 || ^19.0.0
 
@@ -711,8 +717,8 @@ packages:
   base-x@4.0.1:
     resolution: {integrity: sha512-uAZ8x6r6S3aUM9rbHGVOIsR15U/ZSc82b3ymnCPsT45Gk1DDvhDPdIgB5MrhirZWt+5K0EEPQH985kNqZgNPFw==}
 
-  baseline-browser-mapping@2.8.32:
-    resolution: {integrity: sha512-OPz5aBThlyLFgxyhdwf/s2+8ab3OvT7AdTNvKHBwpXomIYeXqpUUuT8LrdtxZSsWJ4R4CU1un4XGh5Ez3nlTpw==}
+  baseline-browser-mapping@2.9.7:
+    resolution: {integrity: sha512-k9xFKplee6KIio3IDbwj+uaCLpqzOwakOgmqzPezM0sFJlFKcg30vk2wOiAJtkTSfx0SSQDSe8q+mWA/fSH5Zg==}
     hasBin: true
 
   binary-extensions@2.3.0:
@@ -729,8 +735,8 @@ packages:
     resolution: {integrity: sha512-yQbXgO/OSZVD2IsiLlro+7Hf6Q18EJrKSEsdoMzKePKXct3gvD8oLcOQdIzGupr5Fj+EDe8gO/lxc1BzfMpxvA==}
     engines: {node: '>=8'}
 
-  browserslist@4.28.0:
-    resolution: {integrity: sha512-tbydkR/CxfMwelN0vwdP/pLkDwyAASZ+VfWm4EOwlB6SWhx1sYnWLqo8N5j0rAzPfzfRaxt0mM/4wPU/Su84RQ==}
+  browserslist@4.28.1:
+    resolution: {integrity: sha512-ZC5Bd0LgJXgwGqUknZY/vkUQ04r8NXnJZ3yYi4vDmSiZmC/pdSN0NbNRPxZpbtO4uAfDUAFffO8IZoM3Gj8IkA==}
     engines: {node: ^6 || ^7 || ^8 || ^9 || ^10 || ^11 || ^12 || >=13.7}
     hasBin: true
 
@@ -748,8 +754,8 @@ packages:
     resolution: {integrity: sha512-QOSvevhslijgYwRx6Rv7zKdMF8lbRmx+uQGx2+vDc+KI/eBnsy9kit5aj23AgGu3pa4t9AgwbnXWqS+iOY+2aA==}
     engines: {node: '>= 6'}
 
-  caniuse-lite@1.0.30001757:
-    resolution: {integrity: sha512-r0nnL/I28Zi/yjk1el6ilj27tKcdjLsNqAOZr0yVjWPrSQyHgKI2INaEWw21bAQSv2LXRt1XuCS/GomNpWOxsQ==}
+  caniuse-lite@1.0.30001760:
+    resolution: {integrity: sha512-7AAMPcueWELt1p3mi13HR/LHH0TJLT11cnwDJEs3xA4+CK/PLKeO9Kl1oru24htkyUKtkGCvAx4ohB0Ttry8Dw==}
 
   cbor-extract@2.2.0:
     resolution: {integrity: sha512-Ig1zM66BjLfTXpNgKpvBePq271BPOvu8MR0Jl080yG7Jsl+wAZunfrwiwA+9ruzm/WEdIV5QF/bjDZTqyAIVHA==}
@@ -839,8 +845,8 @@ packages:
     resolution: {integrity: sha512-yS+Q5i3hBf7GBkd4KG8a7eBNNWNGLTaEwwYWUijIYM7zrlYDM0BFXHjjPWlWZ1Rg7UaddZeIDmi9jF3HmqiQ2w==}
     engines: {node: '>=6.0.0'}
 
-  electron-to-chromium@1.5.263:
-    resolution: {integrity: sha512-DrqJ11Knd+lo+dv+lltvfMDLU27g14LMdH2b0O3Pio4uk0x+z7OR+JrmyacTPN2M8w3BrZ7/RTwG3R9B7irPlg==}
+  electron-to-chromium@1.5.267:
+    resolution: {integrity: sha512-0Drusm6MVRXSOJpGbaSVgcQsuB4hEkMpHXaVstcPmhu5LIedxs1xNK/nIxmQIU/RPC0+1/o0AVZfBTkTNJOdUw==}
 
   error-stack-parser@2.1.4:
     resolution: {integrity: sha512-Sk5V6wVazPhq5MhpO+AUxJn5x7XSXGl1R93Vn7i+zS15KDVxQijejNCrz8340/2bgLBjR9GtEG8ZVKONDjcqGQ==}
@@ -1295,8 +1301,8 @@ packages:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
     engines: {node: '>= 0.8.0'}
 
-  prettier@3.7.3:
-    resolution: {integrity: sha512-QgODejq9K3OzoBbuyobZlUhznP5SKwPqp+6Q6xw6o8gnhr4O85L2U915iM2IDcfF2NPXVaM9zlo9tdwipnYwzg==}
+  prettier@3.7.4:
+    resolution: {integrity: sha512-v6UNi1+3hSlVvv8fSaoUbggEM5VErKmmpGA7Pl3HF8V6uKY7rvClBOJlH6yNwQtfTueNkGVpOv/mtWL9L4bgRA==}
     engines: {node: '>=14'}
     hasBin: true
 
@@ -1459,8 +1465,8 @@ packages:
   tailwind-merge@2.6.0:
     resolution: {integrity: sha512-P+Vu1qXfzediirmHOC3xKGAYeZtPcV9g76X+xg2FD4tYgR71ewMA35Y3sCz3zhiN/dwefRpJX0yBcgwi1fXNQA==}
 
-  tailwindcss@3.4.18:
-    resolution: {integrity: sha512-6A2rnmW5xZMdw11LYjhcI5846rt9pbLSabY5XPxo+XWdxwZaFEn47Go4NzFiHu9sNNmr/kXivP1vStfvMaK1GQ==}
+  tailwindcss@3.4.19:
+    resolution: {integrity: sha512-3ofp+LL8E+pK/JuPLPggVAIaEuhvIz4qNcf3nA1Xn2o/7fb7s/TYpHhwGDv1ZU3PkBluUVaF8PyCHcm48cKLWQ==}
     engines: {node: '>=14.0.0'}
     hasBin: true
 
@@ -1527,8 +1533,8 @@ packages:
     engines: {node: '>=14.17'}
     hasBin: true
 
-  update-browserslist-db@1.1.4:
-    resolution: {integrity: sha512-q0SPT4xyU84saUX+tomz1WLkxUbuaJnR1xWt17M7fJtEJigJeWUNGUqrauFXsHnqev9y9JTRGwk13tFBuKby4A==}
+  update-browserslist-db@1.2.2:
+    resolution: {integrity: sha512-E85pfNzMQ9jpKkA7+TJAi4TJN+tBCuWh5rUcS/sv6cFi+1q9LYDwDI5dpUL0u/73EElyQ8d3TEaeW4sPedBqYA==}
     hasBin: true
     peerDependencies:
       browserslist: '>= 4.21.0'
@@ -1608,8 +1614,8 @@ packages:
       utf-8-validate:
         optional: true
 
-  xstate@5.24.0:
-    resolution: {integrity: sha512-h/213ThFfZbOefUWrLc9ZvYggEVBr0jrD2dNxErxNMLQfZRN19v+80TaXFho17hs8Q2E1mULtm/6nv12um0C4A==}
+  xstate@5.25.0:
+    resolution: {integrity: sha512-yyWzfhVRoTHNLjLoMmdwZGagAYfmnzpm9gPjlX2MhJZsDojXGqRxODDOi4BsgGRKD46NZRAdcLp6CKOyvQS0Bw==}
 
   yallist@3.1.1:
     resolution: {integrity: sha512-a4UGQaWPH59mOXUYnAG2ewncQS4i4F43Tv3JoAM+s2VDAmS9NsK8GpDMLrCHPksFT7h3K6TOoUNn2pb7RoXx4g==}
@@ -1622,23 +1628,23 @@ snapshots:
 
   '@alloc/quick-lru@5.2.0': {}
 
-  '@automerge/automerge-repo-network-broadcastchannel@2.5.0-alpha.2':
+  '@automerge/automerge-repo-network-broadcastchannel@2.5.2-alpha.0':
     dependencies:
-      '@automerge/automerge-repo': 2.5.0-alpha.2
+      '@automerge/automerge-repo': 2.5.2-alpha.0
     transitivePeerDependencies:
       - supports-color
 
-  '@automerge/automerge-repo-network-messagechannel@2.5.0-alpha.2':
+  '@automerge/automerge-repo-network-messagechannel@2.5.2-alpha.0':
     dependencies:
-      '@automerge/automerge-repo': 2.5.0-alpha.2
+      '@automerge/automerge-repo': 2.5.2-alpha.0
       debug: 4.4.3
       eventemitter3: 5.0.1
     transitivePeerDependencies:
       - supports-color
 
-  '@automerge/automerge-repo-network-websocket@2.5.0-alpha.2':
+  '@automerge/automerge-repo-network-websocket@2.5.2-alpha.0':
     dependencies:
-      '@automerge/automerge-repo': 2.5.0-alpha.2
+      '@automerge/automerge-repo': 2.5.2-alpha.0
       cbor-x: 1.6.0
       debug: 4.4.3
       eventemitter3: 5.0.1
@@ -1649,10 +1655,10 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@automerge/automerge-repo-react-hooks@2.5.0-alpha.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@automerge/automerge-repo-react-hooks@2.5.2-alpha.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@automerge/automerge': 3.2.1
-      '@automerge/automerge-repo': 2.5.0-alpha.2
+      '@automerge/automerge-repo': 2.5.2-alpha.0
       eventemitter3: 5.0.1
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
@@ -1660,13 +1666,13 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@automerge/automerge-repo-storage-indexeddb@2.5.0-alpha.2':
+  '@automerge/automerge-repo-storage-indexeddb@2.5.2-alpha.0':
     dependencies:
-      '@automerge/automerge-repo': 2.5.0-alpha.2
+      '@automerge/automerge-repo': 2.5.2-alpha.0
     transitivePeerDependencies:
       - supports-color
 
-  '@automerge/automerge-repo@2.5.0-alpha.2':
+  '@automerge/automerge-repo@2.5.2-alpha.0':
     dependencies:
       '@automerge/automerge': 3.2.1
       bs58check: 3.0.1
@@ -1675,20 +1681,20 @@ snapshots:
       eventemitter3: 5.0.1
       fast-sha256: 1.3.0
       uuid: 9.0.1
-      xstate: 5.24.0
+      xstate: 5.25.0
     transitivePeerDependencies:
       - supports-color
 
   '@automerge/automerge@3.2.1': {}
 
-  '@automerge/react@2.5.0-alpha.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@automerge/react@2.5.2-alpha.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
-      '@automerge/automerge-repo': 2.5.0-alpha.2
-      '@automerge/automerge-repo-network-broadcastchannel': 2.5.0-alpha.2
-      '@automerge/automerge-repo-network-messagechannel': 2.5.0-alpha.2
-      '@automerge/automerge-repo-network-websocket': 2.5.0-alpha.2
-      '@automerge/automerge-repo-react-hooks': 2.5.0-alpha.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@automerge/automerge-repo-storage-indexeddb': 2.5.0-alpha.2
+      '@automerge/automerge-repo': 2.5.2-alpha.0
+      '@automerge/automerge-repo-network-broadcastchannel': 2.5.2-alpha.0
+      '@automerge/automerge-repo-network-messagechannel': 2.5.2-alpha.0
+      '@automerge/automerge-repo-network-websocket': 2.5.2-alpha.0
+      '@automerge/automerge-repo-react-hooks': 2.5.2-alpha.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@automerge/automerge-repo-storage-indexeddb': 2.5.2-alpha.0
       react: 18.3.1
     transitivePeerDependencies:
       - bufferutil
@@ -1736,7 +1742,7 @@ snapshots:
     dependencies:
       '@babel/compat-data': 7.28.5
       '@babel/helper-validator-option': 7.27.1
-      browserslist: 4.28.0
+      browserslist: 4.28.1
       lru-cache: 5.1.1
       semver: 6.3.1
 
@@ -2204,8 +2210,8 @@ snapshots:
 
   autoprefixer@10.4.22(postcss@8.5.6):
     dependencies:
-      browserslist: 4.28.0
-      caniuse-lite: 1.0.30001757
+      browserslist: 4.28.1
+      caniuse-lite: 1.0.30001760
       fraction.js: 5.3.4
       normalize-range: 0.1.2
       picocolors: 1.1.1
@@ -2216,7 +2222,7 @@ snapshots:
 
   base-x@4.0.1: {}
 
-  baseline-browser-mapping@2.8.32: {}
+  baseline-browser-mapping@2.9.7: {}
 
   binary-extensions@2.3.0: {}
 
@@ -2233,13 +2239,13 @@ snapshots:
     dependencies:
       fill-range: 7.1.1
 
-  browserslist@4.28.0:
+  browserslist@4.28.1:
     dependencies:
-      baseline-browser-mapping: 2.8.32
-      caniuse-lite: 1.0.30001757
-      electron-to-chromium: 1.5.263
+      baseline-browser-mapping: 2.9.7
+      caniuse-lite: 1.0.30001760
+      electron-to-chromium: 1.5.267
       node-releases: 2.0.27
-      update-browserslist-db: 1.1.4(browserslist@4.28.0)
+      update-browserslist-db: 1.2.2(browserslist@4.28.1)
 
   bs58@5.0.0:
     dependencies:
@@ -2254,7 +2260,7 @@ snapshots:
 
   camelcase-css@2.0.1: {}
 
-  caniuse-lite@1.0.30001757: {}
+  caniuse-lite@1.0.30001760: {}
 
   cbor-extract@2.2.0:
     dependencies:
@@ -2347,7 +2353,7 @@ snapshots:
     dependencies:
       esutils: 2.0.3
 
-  electron-to-chromium@1.5.263: {}
+  electron-to-chromium@1.5.267: {}
 
   error-stack-parser@2.1.4:
     dependencies:
@@ -2793,7 +2799,7 @@ snapshots:
 
   prelude-ls@1.2.1: {}
 
-  prettier@3.7.3: {}
+  prettier@3.7.4: {}
 
   punycode@2.3.1: {}
 
@@ -2968,7 +2974,7 @@ snapshots:
 
   tailwind-merge@2.6.0: {}
 
-  tailwindcss@3.4.18:
+  tailwindcss@3.4.19:
     dependencies:
       '@alloc/quick-lru': 5.2.0
       arg: 5.0.2
@@ -3048,9 +3054,9 @@ snapshots:
 
   typescript@5.9.3: {}
 
-  update-browserslist-db@1.1.4(browserslist@4.28.0):
+  update-browserslist-db@1.2.2(browserslist@4.28.1):
     dependencies:
-      browserslist: 4.28.0
+      browserslist: 4.28.1
       escalade: 3.2.0
       picocolors: 1.1.1
 
@@ -3088,7 +3094,7 @@ snapshots:
 
   ws@8.18.3: {}
 
-  xstate@5.24.0: {}
+  xstate@5.25.0: {}
 
   yallist@3.1.1: {}
 

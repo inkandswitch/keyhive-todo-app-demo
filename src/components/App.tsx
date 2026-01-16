@@ -106,7 +106,7 @@ function App({ docUrl, automergeRepoKeyhive }: AppProps) {
   useEffect(() => {
     if (phonebook && automergeRepoKeyhive.syncServer) {
       const serverContactCard = ContactCard.fromJson(
-        automergeRepoKeyhive.syncServer.contactCard,
+        automergeRepoKeyhive.syncServer.contactCard.toJson(),
       );
       if (serverContactCard) {
         const serverHexId = uint8ArrayToHex(serverContactCard.individualId.bytes);
@@ -157,7 +157,7 @@ function App({ docUrl, automergeRepoKeyhive }: AppProps) {
           }}
           selectedDocument={selectedDocUrl}
           syncServer={automergeRepoKeyhive.syncServer}
-          keyhive={automergeRepoKeyhive.keyhive}
+          hive={automergeRepoKeyhive}
           keyhiveUpdateTracker={keyhiveUpdateTracker}
         />
       </div>
@@ -185,7 +185,7 @@ function App({ docUrl, automergeRepoKeyhive }: AppProps) {
               <TaskList
                 docUrl={selectedDocUrl}
                 phonebook={phonebook}
-                keyhive={automergeRepoKeyhive.keyhive}
+                hive={automergeRepoKeyhive}
                 identity={identityState}
                 keyhiveUpdateTracker={keyhiveUpdateTracker}
               />

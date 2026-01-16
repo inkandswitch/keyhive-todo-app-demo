@@ -18,7 +18,28 @@ export default defineConfig({
     target: "esnext",
     assetsInlineLimit: 100000, // Inline assets smaller than 100kb as base64
     rollupOptions: {
-      external: ["@automerge/automerge-repo-keyhive"],
+      external: [
+        "@automerge/automerge",
+        "@automerge/automerge/slim",
+        "@automerge/automerge-repo",
+        "@automerge/automerge-repo/slim",
+        "@automerge/automerge-repo-keyhive",
+        "@keyhive/keyhive",
+        "@keyhive/keyhive/slim",
+        "@inkandswitch/patchwork-bootloader",
+        "@inkandswitch/patchwork-elements",
+        "@inkandswitch/patchwork-filesystem",
+        "@inkandswitch/patchwork-plugins",
+
+        // sad
+        "@codemirror/commands",
+        "@codemirror/state",
+        "@codemirror/view",
+        "@codemirror/language",
+
+        "@lezer/common",
+        "@marijn/find-cluster-break",
+      ],
       input: "./src/main.tsx",
       output: {
         format: "es",

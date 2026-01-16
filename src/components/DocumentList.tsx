@@ -9,7 +9,7 @@ import {
 import { initTaskList, TaskList } from "./TaskList";
 import { RootDocument } from "../rootDoc";
 import { useState, useEffect } from "react";
-import { Access, ContactCard, Keyhive, addMemberToDoc, SyncServer } from "@automerge/automerge-repo-keyhive";
+import { Access, AutomergeRepoKeyhive, ContactCard, SyncServer } from "@automerge/automerge-repo-keyhive";
 
 type AccessString = "admin" | "write" | "read" | "pull";
 
@@ -18,7 +18,7 @@ interface DocumentListProps {
   selectedDocument: AutomergeUrl | null;
   onSelectDocument: (docUrl: AutomergeUrl | null) => void;
   syncServer: SyncServer;
-  keyhive: Keyhive;
+  hive: AutomergeRepoKeyhive;
   keyhiveUpdateTracker: number;
 }
 
@@ -27,7 +27,7 @@ export const DocumentList = ({
   selectedDocument,
   onSelectDocument,
   syncServer,
-  keyhive,
+  hive,
   keyhiveUpdateTracker,
 }: DocumentListProps) => {
   const repo = useRepo();
@@ -53,7 +53,7 @@ export const DocumentList = ({
     try {
       const membersToAdd: [ContactCard, AccessString][] = [];
 
-      const serverContactCard = ContactCard.fromJson(syncServer.contactCard);
+      const serverContactCard = ContactCard.fromJson(syncServer.contactCard.toJson());
       if (serverContactCard) {
         membersToAdd.push([serverContactCard, "pull"]);
       } else {
@@ -72,7 +72,7 @@ export const DocumentList = ({
           `[Demo] calling addMemberToDoc with access: ${access.toString()}`,
         );
         try {
-          await addMemberToDoc(keyhive, newTaskList.url, contactCard, access);
+          await hive.addMemberToDoc(newTaskList.url, contactCard, access);
           console.debug("[Demo] called addMemberToDoc");
         } catch (err) {
           console.error(`[Demo] addMemberToDoc failed: ${err}`);

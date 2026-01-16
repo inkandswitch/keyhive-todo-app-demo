@@ -5,11 +5,9 @@ import { Identity } from "../active";
 import { accessListForDoc, DocAccessList } from "../utilities";
 import {
   Access,
+  AutomergeRepoKeyhive,
   ContactCard,
-  Keyhive,
-  addMemberToDoc,
   docIdFromAutomergeUrl,
-  revokeMemberFromDoc,
   uint8ArrayToHex,
 } from "@automerge/automerge-repo-keyhive";
 import blankAvatarImg from "../assets/blankavatar.jpeg";
@@ -18,7 +16,7 @@ interface ShareModalProps {
   isOpen: boolean;
   docUrl: AutomergeUrl;
   phonebook: Phonebook | undefined;
-  keyhive: Keyhive;
+  hive: AutomergeRepoKeyhive;
   identity: Identity;
   keyhiveUpdateTracker: number;
   onClose: () => void;
@@ -28,7 +26,7 @@ export function ShareModal({
   isOpen,
   docUrl,
   phonebook,
-  keyhive,
+  hive,
   identity,
   keyhiveUpdateTracker,
   onClose,
@@ -57,7 +55,7 @@ export function ShareModal({
       }
 
       try {
-        const access = await keyhive.accessForDoc(id, keyhiveDocId);
+        const access = await hive.accessForDoc(id, keyhiveDocId);
         if (!cancelled) {
           setCurrentUserAccess(access ? access.toString() : undefined);
         }
@@ -80,7 +78,7 @@ export function ShareModal({
     keyhiveUpdateTracker,
     identity.active.individual.id,
     keyhiveDocId,
-    keyhive,
+    hive,
     isOpen,
   ]);
 
@@ -115,7 +113,7 @@ export function ShareModal({
       }
 
       if (keyhiveDocId) {
-        const accessList = await accessListForDoc(keyhive, keyhiveDocId);
+        const accessList = await accessListForDoc(hive, keyhiveDocId);
         if (!cancelled) {
           setDocAccessList(accessList);
           setIsLoadingAccessList(false);
@@ -136,7 +134,7 @@ export function ShareModal({
     return () => {
       cancelled = true;
     };
-  }, [keyhiveUpdateTracker, keyhiveDocId, keyhive, isOpen]);
+  }, [keyhiveUpdateTracker, keyhiveDocId, hive, isOpen]);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -174,8 +172,9 @@ export function ShareModal({
           return;
         }
 
-        keyhive.receiveContactCard(contactCard);
-        await addMemberToDoc(keyhive, docUrl, contactCard, access);
+        console.log("[Demo] Adding member to doc with access:", access.toString());
+        await hive.addMemberToDoc(docUrl, contactCard, access);
+        console.log("[Demo] Member added successfully. Delegation should now sync to other peers.");
 
         setUserIdInput("");
       } catch (error) {
@@ -186,7 +185,7 @@ export function ShareModal({
 
   const handleRemoveUser = async (hexId: string) => {
     try {
-      await revokeMemberFromDoc(keyhive, docUrl, hexId);
+      await hive.revokeMemberFromDoc(docUrl, hexId);
     } catch (error) {
       console.error("[Demo] Error removing user:", error);
     }

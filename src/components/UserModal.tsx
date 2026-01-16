@@ -227,7 +227,7 @@ export function UserModal({
                 Contact Card
               </label>
               <div className="w-full px-3 py-2 bg-muted text-muted-foreground rounded-md text-sm font-mono break-all">
-                {identityState.active.contactCard}
+                {identityState.active.contactCard.toJson()}
               </div>
             </div>
 
