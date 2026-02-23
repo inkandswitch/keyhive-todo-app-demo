@@ -52,6 +52,7 @@ async function startStandalone() {
   automergeRepoKeyhive.linkRepo(repo);
 
   window.hive = automergeRepoKeyhive;
+  (window as any).repo = repo;
 
   console.log("[Demo] Standalone initialized, mounting app");
 
