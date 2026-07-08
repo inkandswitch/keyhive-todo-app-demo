@@ -14,7 +14,7 @@ import { useState, useEffect, Component, type ReactNode } from "react";
 import { Phonebook } from "../phonebook";
 import { Identity } from "../active";
 import {
-  AutomergeRepoKeyhiveRust,
+  AutomergeRepoKeyhiveSubduction,
   uint8ArrayToHex,
   ContactCard,
   KEYHIVE_SYNC_SERVER_CONTACT_CARD_JSON,
@@ -23,7 +23,7 @@ import {
 
 type AppProps = {
   docUrl: AutomergeUrl;
-  automergeRepoKeyhive: AutomergeRepoKeyhiveRust;
+  automergeRepoKeyhive: AutomergeRepoKeyhiveSubduction;
 };
 
 class ErrorBoundary extends Component<

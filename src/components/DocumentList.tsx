@@ -8,14 +8,14 @@ import {
 import { initTaskList, TaskList } from "./TaskList";
 import { RootDocument } from "../rootDoc";
 import { useState, useEffect } from "react";
-import { AutomergeRepoKeyhiveRust } from "@automerge/automerge-repo-keyhive";
+import { AutomergeRepoKeyhiveSubduction } from "@automerge/automerge-repo-keyhive";
 import { useReRenderOnDocProgress } from "../hooks";
 
 interface DocumentListProps {
   docUrl: AutomergeUrl;
   selectedDocument: AutomergeUrl | null;
   onSelectDocument: (docUrl: AutomergeUrl | null) => void;
-  hive: AutomergeRepoKeyhiveRust;
+  hive: AutomergeRepoKeyhiveSubduction;
   keyhiveUpdateTracker: number;
 }
 

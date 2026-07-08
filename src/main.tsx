@@ -5,9 +5,8 @@ import "./index.css";
 // shared module instance.
 import "@automerge/automerge-subduction";
 import {
-  initializeAutomergeRepoKeyhiveRustWithRepo,
-  initKeyhiveWasm,
-  AutomergeRepoKeyhiveRust,
+  initializeAutomergeRepoKeyhiveSubduction,
+  AutomergeRepoKeyhiveSubduction,
   type SyncServerSelection,
 } from "@automerge/automerge-repo-keyhive";
 import { Repo } from "@automerge/automerge-repo";
@@ -17,7 +16,7 @@ import Frame from "./components/Frame.tsx";
 
 declare global {
   interface Window {
-    hive: AutomergeRepoKeyhiveRust;
+    hive: AutomergeRepoKeyhiveSubduction;
   }
   const __SYNC_SERVER__: string;
   const __SYNC_SERVER_CONTACT_CARD__: string;
@@ -39,11 +38,9 @@ const syncServer: SyncServerSelection =
     : "keyhive";
 
 async function start() {
-  initKeyhiveWasm();
-
   const storage = new IndexedDBStorageAdapter();
 
-  const { hive, repo } = await initializeAutomergeRepoKeyhiveRustWithRepo({
+  const { hive, repo } = await initializeAutomergeRepoKeyhiveSubduction({
     createRepo: (config) => new Repo(config),
     storage,
     // ARK appends a random component for peer uniqueness, so a plain label is

@@ -3,7 +3,7 @@ import { AutomergeUrl } from "@automerge/react/slim";
 import { Phonebook } from "../phonebook";
 import {
   Access,
-  AutomergeRepoKeyhiveRust,
+  AutomergeRepoKeyhiveSubduction,
   ContactCard,
   type DocMember,
 } from "@automerge/automerge-repo-keyhive";
@@ -13,7 +13,7 @@ interface ShareModalProps {
   isOpen: boolean;
   docUrl: AutomergeUrl;
   phonebook: Phonebook | undefined;
-  hive: AutomergeRepoKeyhiveRust;
+  hive: AutomergeRepoKeyhiveSubduction;
   keyhiveUpdateTracker: number;
   onClose: () => void;
 }
