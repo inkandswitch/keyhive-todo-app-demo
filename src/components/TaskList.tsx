@@ -1,27 +1,11 @@
 import { AutomergeUrl, useDocument, updateText } from "@automerge/react/slim";
 import { ShareModal } from "./ShareModal";
-import { useState, useEffect, useMemo } from "react";
-import { AutomergeRepoKeyhive, docIdFromAutomergeUrl } from "@automerge/automerge-repo-keyhive";
+import { useState, useEffect } from "react";
+import { AutomergeRepoKeyhive } from "@automerge/automerge-repo-keyhive";
 import { Phonebook } from "../phonebook";
 import { Identity } from "../active";
-
-export interface Task {
-  title: string;
-  done: boolean;
-}
-
-export interface TaskList {
-  title: string;
-  tasks: Task[];
-}
-
-// A helper function to consistently initialize a task list.
-export function initTaskList() {
-  return {
-    title: `TODO: ${new Date().toLocaleString()}`,
-    tasks: [{ done: false, title: "" }],
-  };
-}
+import { useReRenderOnDocProgress } from "../hooks";
+import { TaskList as TaskListDoc } from "../taskListDoc";
 
 interface TaskListProps {
   docUrl: AutomergeUrl;
@@ -41,12 +25,12 @@ export const TaskList = ({
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [shouldShowShareButton, setShouldShowShareButton] = useState(false);
   const [userAccess, setUserAccess] = useState<string | undefined>(undefined);
+  const [accessChecked, setAccessChecked] = useState(false);
 
-  const [doc, changeDoc] = useDocument<TaskList>(docUrl, {
-    suspense: true,
-  });
-
-  const keyhiveDocId = useMemo(() => docIdFromAutomergeUrl(docUrl), [docUrl]);
+  // Re-render when the document becomes available so a newly-granted doc
+  // renders without a page reload (see useReRenderOnDocProgress).
+  useReRenderOnDocProgress(docUrl);
+  const [doc, changeDoc] = useDocument<TaskListDoc>(docUrl);
 
   // Check access level and update state. Recalculate when keyhive updates.
   useEffect(() => {
@@ -59,18 +43,23 @@ export const TaskList = ({
         if (!cancelled) {
           setShouldShowShareButton(false);
           setUserAccess(undefined);
+          setAccessChecked(true);
         }
         return;
       }
 
       try {
-        const access = await hive.accessForDoc(id, keyhiveDocId);
+        // Best of direct and public access (matches TPW's gate), so
+        // publicly-shared docs are readable by peers with no direct
+        // membership.
+        const access = await hive.bestAccessForDoc(id, docUrl);
         if (cancelled) return;
 
         if (access) {
-          const accessString = access.toString();
-          setUserAccess(accessString);
-          setShouldShowShareButton(accessString !== "Pull");
+          setUserAccess(access.toString());
+          // Relay-only members sync ciphertext but cannot read, so there
+          // is nothing for them to share.
+          setShouldShowShareButton(access.isReader);
         } else {
           setUserAccess(undefined);
           setShouldShowShareButton(false);
@@ -81,6 +70,8 @@ export const TaskList = ({
           setUserAccess(undefined);
           setShouldShowShareButton(false);
         }
+      } finally {
+        if (!cancelled) setAccessChecked(true);
       }
     }
 
@@ -89,37 +80,37 @@ export const TaskList = ({
     return () => {
       cancelled = true;
     };
-  }, [
-    keyhiveUpdateTracker,
-    identity.active.individual.id,
-    keyhiveDocId,
-    hive,
-  ]);
+  }, [keyhiveUpdateTracker, identity.active.individual.id, docUrl, hive]);
 
-  const canEdit = userAccess === "Write" || userAccess === "Admin";
-  const canRead =
-    userAccess === "Read" || userAccess === "Write" || userAccess === "Admin";
+  const canEdit = userAccess === "Edit" || userAccess === "Admin";
+  const canRead = canEdit || userAccess === "Read";
+  const docId = docUrl.replace("automerge:", "");
 
-  if (!canRead) {
+  // Wait for the first access check, and for an accessible document to finish
+  // syncing, before deciding what to show.
+  if (!accessChecked || (canRead && !doc)) {
+    return (
+      <div className="h-full flex items-center justify-center bg-muted text-muted-foreground">
+        Loading...
+      </div>
+    );
+  }
+
+  if (!canRead || !doc) {
     return (
       <div className="h-full flex flex-col bg-muted">
         <div className="flex-1 overflow-y-auto flex justify-center items-start py-8">
           <div className="w-full max-w-2xl px-6">
             <div className="bg-background rounded-lg p-6 shadow-sm">
               <div className="pb-6 mb-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <h1 className="flex-1 text-lg font-medium text-foreground">
-                    {doc.title}
-                  </h1>
-                </div>
                 <div className="flex items-center gap-2">
                   <h2 className="text-sm text-muted-foreground">
-                    Doc ID: {docUrl.replace("automerge:", "")}
+                    Doc ID: {docId}
                   </h2>
                   <button
                     type="button"
                     onClick={() => {
-                      navigator.clipboard.writeText(docUrl.replace("automerge:", ""));
+                      navigator.clipboard.writeText(docId);
                     }}
                     className="px-2 py-1 text-xs font-medium text-secondary-foreground bg-secondary border border-border rounded hover:bg-accent"
                   >
@@ -181,12 +172,12 @@ export const TaskList = ({
               </div>
               <div className="flex items-center gap-2">
                 <h2 className="text-sm text-muted-foreground">
-                  Doc ID: {docUrl.replace("automerge:", "")}
+                  Doc ID: {docId}
                 </h2>
                 <button
                   type="button"
                   onClick={() => {
-                    navigator.clipboard.writeText(docUrl.replace("automerge:", ""));
+                    navigator.clipboard.writeText(docId);
                   }}
                   className="px-2 py-1 text-xs font-medium text-secondary-foreground bg-secondary border border-border rounded hover:bg-accent"
                 >
@@ -275,7 +266,6 @@ export const TaskList = ({
         docUrl={docUrl}
         phonebook={phonebook}
         hive={hive}
-        identity={identity}
         keyhiveUpdateTracker={keyhiveUpdateTracker}
         onClose={() => setIsShareModalOpen(false)}
       />

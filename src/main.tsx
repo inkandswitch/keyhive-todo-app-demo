@@ -1,35 +1,80 @@
 import ReactDOM from "react-dom/client";
 import "./index.css";
-import { AutomergeRepoKeyhive, MODULE_INSTANCE_ID, isWasmInitialized } from "@automerge/automerge-repo-keyhive";
+// The Repo's subduction subsystem uses the slim subduction entry, which does
+// not self-initialize its WASM. Importing the full entry initializes the
+// shared module instance.
+import "@automerge/automerge-subduction";
+import {
+  initializeAutomergeRepoKeyhive,
+  AutomergeRepoKeyhive,
+  type SyncServerSelection,
+} from "@automerge/automerge-repo-keyhive";
+import { Repo } from "@automerge/automerge-repo";
+import { PeerId } from "@automerge/automerge-repo/slim";
+import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-indexeddb";
 import Frame from "./components/Frame.tsx";
+import { ensurePhonebook } from "./phonebook.ts";
 
 declare global {
   interface Window {
     hive: AutomergeRepoKeyhive;
+    repo: Repo;
   }
+  const __SYNC_SERVER__: string;
+  const __SYNC_SERVER_CONTACT_CARD__: string;
+  const __SYNC_SERVER_PEER_ID__: string;
 }
 
-export const plugins = [
-  {
-    type: "patchwork:tool",
-    id: "keyhive-todo-demo",
-    name: "Keyhive TODO Demo",
-    supportedDatatypes: ["identity"],
-    async load() {
-      console.log(`[Demo] Plugin sees module instance: ${MODULE_INSTANCE_ID}, WASM initialized: ${isWasmInitialized()}`);
-      return (_handle: any, element: any) => {
-        console.log("[Demo] Startup");
-        const root = ReactDOM.createRoot(element);
-        window.hive = element.hive;
-
-        root.render(
-          <Frame
-            automergeRepoKeyhive={element.hive}
-            repo={element.repo}
-          />,
-        );
-        return () => root.unmount();
+// The identity to register as the sync server relay. When a custom contact
+// card and peer id are supplied (via the SYNC_SERVER_CONTACT_CARD and
+// SYNC_SERVER_PEER_ID build vars) the demo targets that server. Otherwise it
+// uses the built-in "keyhive" identity, which the public keyhive sync server
+// and a stock local subduction_cli dev server both run. The identity must
+// match whatever server __SYNC_SERVER__ points at.
+const syncServer: SyncServerSelection =
+  __SYNC_SERVER_CONTACT_CARD__ && __SYNC_SERVER_PEER_ID__
+    ? {
+        contactCardJson: __SYNC_SERVER_CONTACT_CARD__,
+        peerId: __SYNC_SERVER_PEER_ID__ as PeerId,
       }
+    : "keyhive";
+
+async function start() {
+  const storage = new IndexedDBStorageAdapter();
+
+  const { hive, repo } = await initializeAutomergeRepoKeyhive({
+    createRepo: (config) => new Repo(config),
+    storage,
+    // ARK appends a random component for peer uniqueness, so a plain label is
+    // all the demo needs to pass.
+    peerIdSuffix: "keyhive-demo",
+    automaticArchiveIngestion: true,
+    cachingMode: "periodic",
+    syncServer,
+    repo: {
+      storage,
+      subductionWebsocketEndpoints: [__SYNC_SERVER__],
+      enableRemoteHeadsGossiping: true,
     },
-  },
-];
+  });
+
+  window.hive = hive;
+  window.repo = repo;
+
+  // Seed the shared phonebook if the sync server does not already have it (for
+  // example a freshly started server). Fire-and-forget: the UI renders now and
+  // picks up the phonebook once it loads or is seeded.
+  void ensurePhonebook(repo);
+
+  const rootElement = document.getElementById("root");
+  if (!rootElement) {
+    throw new Error("Root element not found");
+  }
+
+  const root = ReactDOM.createRoot(rootElement);
+  root.render(<Frame automergeRepoKeyhive={hive} repo={repo} />);
+}
+
+start().catch((error) => {
+  console.error("[Demo] Failed to start:", error);
+});

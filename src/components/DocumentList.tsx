@@ -4,31 +4,25 @@ import {
   AutomergeUrl,
   useRepo,
   isValidAutomergeUrl,
-  DocumentId,
 } from "@automerge/react/slim";
-import { initTaskList, TaskList } from "./TaskList";
+import { initTaskList, TaskList } from "../taskListDoc";
 import { RootDocument } from "../rootDoc";
 import { useState, useEffect } from "react";
-import { Access, AutomergeRepoKeyhive, ContactCard, SyncServer } from "@automerge/automerge-repo-keyhive";
-
-type AccessString = "admin" | "write" | "read" | "pull";
+import { AutomergeRepoKeyhive } from "@automerge/automerge-repo-keyhive";
+import { useReRenderOnDocProgress } from "../hooks";
 
 interface DocumentListProps {
   docUrl: AutomergeUrl;
   selectedDocument: AutomergeUrl | null;
   onSelectDocument: (docUrl: AutomergeUrl | null) => void;
-  syncServer: SyncServer;
   hive: AutomergeRepoKeyhive;
-  keyhiveUpdateTracker: number;
 }
 
 export const DocumentList = ({
   docUrl,
   selectedDocument,
   onSelectDocument,
-  syncServer,
   hive,
-  keyhiveUpdateTracker,
 }: DocumentListProps) => {
   const repo = useRepo();
   const [doc, changeDoc] = useDocument<RootDocument>(docUrl, {
@@ -36,49 +30,28 @@ export const DocumentList = ({
   });
   const [inputUrl, setInputUrl] = useState("");
 
-  // Add selected document from URL to user's list if not already present
+  // Add the selected document to this identity's list if it is not already
+  // there (e.g. when opening a shared document by URL). Keyed only on the
+  // selection, so deleting a document does not re-trigger this and re-add it.
   useEffect(() => {
-    if (!doc?.taskLists || !selectedDocument) return;
-    if (doc.taskLists.includes(selectedDocument)) return;
-
+    if (!selectedDocument) return;
     changeDoc((d) => {
       if (!d.taskLists.includes(selectedDocument)) {
         d.taskLists.push(selectedDocument);
       }
     });
-  }, [selectedDocument, changeDoc, doc]);
+  }, [selectedDocument, changeDoc]);
 
   const handleNewDocument = async () => {
-    console.debug("[Demo] Calling handleNewDocument");
     try {
-      const membersToAdd: [ContactCard, AccessString][] = [];
-
-      const serverContactCard = ContactCard.fromJson(syncServer.contactCard.toJson());
-      if (serverContactCard) {
-        membersToAdd.push([serverContactCard, "pull"]);
-      } else {
-        console.error("[Demo] Missing syncServer individual!");
-      }
-
+      // repo.create2 routes through ARK's id generator, so the new task list
+      // is an access-controlled, end-to-end encrypted keyhive document (unlike
+      // the unprotected root doc created in Frame.tsx).
       const newTaskList = await repo.create2<TaskList>(initTaskList());
 
-      for (const [contactCard, cap] of membersToAdd) {
-        const access = Access.tryFromString(cap);
-        if (!access) {
-          console.error("[Demo] Failed to derive Access");
-          continue;
-        }
-        console.debug(
-          `[Demo] calling addMemberToDoc with access: ${access.toString()}`,
-        );
-        try {
-          await hive.addMemberToDoc(newTaskList.url, contactCard, access);
-          console.debug("[Demo] called addMemberToDoc");
-        } catch (err) {
-          console.error(`[Demo] addMemberToDoc failed: ${err}`);
-          throw err;
-        }
-      }
+      // Give the sync server relay access so it can sync the document
+      // without being able to read it.
+      await hive.addSyncServerRelayToDoc(newTaskList.url);
 
       changeDoc((d) => {
         d.taskLists.push(newTaskList.url);
@@ -90,17 +63,12 @@ export const DocumentList = ({
   };
 
   const handleDeleteDocument = (urlToDelete: AutomergeUrl) => {
-    // Deselect first to prevent the useEffect from re-adding it
     if (urlToDelete === selectedDocument) {
       onSelectDocument(null);
     }
-
-    // Use setTimeout to ensure onSelectDocument(null) takes effect before we delete
-    setTimeout(() => {
-      changeDoc((d) => {
-        d.taskLists = d.taskLists.filter((url) => url !== urlToDelete);
-      });
-    }, 0);
+    changeDoc((d) => {
+      d.taskLists = d.taskLists.filter((url) => url !== urlToDelete);
+    });
   };
 
   const handleLoadUrl = (e: React.FormEvent) => {
@@ -123,14 +91,35 @@ export const DocumentList = ({
 
   return (
     <div className="flex flex-col h-full">
-      {/* Sidebar header */}
+      {/* Sidebar header and controls */}
       <div className="p-4 border-b border-border">
-        <h2 className="text-sm font-medium text-foreground">Documents</h2>
+        <h2 className="text-sm font-medium text-foreground mb-4">Documents</h2>
+        <button
+          onClick={handleNewDocument}
+          className="w-full h-9 px-3 bg-secondary text-secondary-foreground border border-border rounded-md text-sm font-medium cursor-pointer mb-3 hover:bg-accent hover:border-ring transition-colors"
+        >
+          + New Document
+        </button>
+        <form onSubmit={handleLoadUrl} className="flex gap-2">
+          <input
+            type="text"
+            value={inputUrl}
+            onChange={(e) => setInputUrl(e.target.value)}
+            placeholder="Document ID"
+            className="flex-1 h-9 px-3 bg-background border border-border rounded-md text-sm text-foreground box-border"
+          />
+          <button
+            type="submit"
+            className="h-9 px-4 bg-secondary text-secondary-foreground border border-border rounded-md text-sm font-medium cursor-pointer whitespace-nowrap hover:bg-accent hover:border-ring transition-colors"
+          >
+            Load
+          </button>
+        </form>
       </div>
 
       {/* Document list */}
-      <div className="flex-1 overflow-y-auto p-2 pb-6">
-        <div className="space-y-1 mb-6">
+      <div className="flex-1 overflow-y-auto p-2">
+        <div className="space-y-1">
           {doc?.taskLists?.map((docUrl) => (
             <div
               key={docUrl}
@@ -142,10 +131,7 @@ export const DocumentList = ({
               onClick={() => onSelectDocument(docUrl)}
             >
               <div className="flex-grow min-w-0">
-                <DocumentTitle
-                  docUrl={docUrl}
-                  keyhiveUpdateTracker={keyhiveUpdateTracker}
-                />
+                <DocumentTitle docUrl={docUrl} />
               </div>
               <button
                 className={`ml-2 w-5 h-5 flex items-center justify-center text-muted-foreground bg-transparent border-none rounded cursor-pointer transition-all duration-200 hover:text-destructive hover:bg-destructive/10 hover:opacity-100 ${
@@ -165,67 +151,18 @@ export const DocumentList = ({
           ))}
         </div>
       </div>
-
-      {/* Sidebar footer */}
-      <div className="pt-8 px-4 pb-4 border-t border-border">
-        <button
-          onClick={handleNewDocument}
-          className="w-full h-9 px-3 bg-secondary text-secondary-foreground border border-border rounded-md text-sm font-medium cursor-pointer mb-4 hover:bg-accent hover:border-ring transition-colors"
-        >
-          + New Document
-        </button>
-
-        <form onSubmit={handleLoadUrl} className="flex gap-2">
-          <input
-            type="text"
-            value={inputUrl}
-            onChange={(e) => setInputUrl(e.target.value)}
-            placeholder="Document ID"
-            className="flex-1 h-9 px-3 bg-background border border-border rounded-md text-sm text-foreground box-border"
-          />
-          <button
-            type="submit"
-            className="h-9 px-4 bg-secondary text-secondary-foreground border border-border rounded-md text-sm font-medium cursor-pointer whitespace-nowrap hover:bg-accent hover:border-ring transition-colors"
-          >
-            Load
-          </button>
-        </form>
-      </div>
     </div>
   );
 };
 
-const DocumentTitle: React.FC<{
-  docUrl: AutomergeUrl;
-  keyhiveUpdateTracker: number;
-}> = React.memo(
-  ({ docUrl, keyhiveUpdateTracker }) => {
-    const repo = useRepo();
+// Memoized on docUrl so an unrelated re-render of the list does not re-render
+// every title. Its own hooks (useReRenderOnDocProgress, useDocument) still
+// re-render it when the document syncs in, e.g. after the viewer is granted
+// access, without a page reload.
+const DocumentTitle: React.FC<{ docUrl: AutomergeUrl }> = React.memo(
+  ({ docUrl }) => {
+    useReRenderOnDocProgress(docUrl);
     const [doc] = useDocument<TaskList>(docUrl);
-
-    // Retry loading the document when keyhive updates
-    useEffect(() => {
-      if (!doc) {
-        console.debug(
-          `[Demo] Retrying document load for ${docUrl} (keyhive update ${keyhiveUpdateTracker})`,
-        );
-        const documentId = docUrl.replace("automerge:", "") as DocumentId;
-        const handle = repo.handles[documentId];
-        if (handle) {
-          if (handle.isUnavailable()) {
-            // Call reload to switch the handle's state from unavailable back to loading
-            handle.reload();
-            handle.request();
-          } else if (
-            !(handle.state === "requesting" || handle.state === "loading")
-          ) {
-            repo.find(docUrl);
-          }
-        } else {
-          repo.find(docUrl);
-        }
-      }
-    }, [keyhiveUpdateTracker, doc, repo, docUrl]);
 
     if (!doc) {
       const docId = docUrl.replace("automerge:", "");
@@ -239,12 +176,5 @@ const DocumentTitle: React.FC<{
 
     const title = doc.title || "Untitled Task List";
     return <span className="text-sm font-medium text-foreground">{title}</span>;
-  },
-  (prevProps, nextProps) => {
-    // Only re-render if docUrl or keyhiveUpdateTracker changes
-    return (
-      prevProps.docUrl === nextProps.docUrl &&
-      prevProps.keyhiveUpdateTracker === nextProps.keyhiveUpdateTracker
-    );
   },
 );

@@ -1,23 +1,22 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { AutomergeUrl } from "@automerge/react/slim";
 import { Phonebook } from "../phonebook";
-import { Identity } from "../active";
-import { accessListForDoc, DocAccessList } from "../utilities";
 import {
   Access,
   AutomergeRepoKeyhive,
   ContactCard,
-  docIdFromAutomergeUrl,
-  uint8ArrayToHex,
+  type DocMember,
 } from "@automerge/automerge-repo-keyhive";
 import blankAvatarImg from "../assets/blankavatar.jpeg";
+
+// Access levels from lowest to highest. You can share at your own level or below.
+const accessLevels = ["Relay", "Read", "Edit", "Admin"];
 
 interface ShareModalProps {
   isOpen: boolean;
   docUrl: AutomergeUrl;
   phonebook: Phonebook | undefined;
   hive: AutomergeRepoKeyhive;
-  identity: Identity;
   keyhiveUpdateTracker: number;
   onClose: () => void;
 }
@@ -27,68 +26,29 @@ export function ShareModal({
   docUrl,
   phonebook,
   hive,
-  identity,
   keyhiveUpdateTracker,
   onClose,
 }: ShareModalProps) {
   const [userIdInput, setUserIdInput] = useState("");
-  const [selectedAccessLevel, setSelectedAccessLevel] = useState("Write");
-  const [docAccessList, setDocAccessList] = useState<DocAccessList>({});
+  const [selectedAccessLevel, setSelectedAccessLevel] = useState("Edit");
+  const [members, setMembers] = useState<DocMember[]>([]);
   const [isLoadingAccessList, setIsLoadingAccessList] = useState(true);
-  const [currentUserAccess, setCurrentUserAccess] = useState<
-    string | undefined
-  >(undefined);
 
-  const keyhiveDocId = useMemo(() => docIdFromAutomergeUrl(docUrl), [docUrl]);
+  // The current user and the public member are just entries in the member
+  // list, tagged by listMembers.
+  const currentUserAccess = members.find((m) => m.isSelf)?.access.toString();
+  const publicMember = members.find((m) => m.isPublic);
+  const currentPublicAccess = publicMember?.access.toString();
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function fetchCurrentUserAccess() {
-      const id = identity.active.individual.id;
-      // FIXME: This should probably be an error
-      if (!id) {
-        if (!cancelled) {
-          setCurrentUserAccess(undefined);
-        }
-        return;
-      }
-
-      try {
-        const access = await hive.accessForDoc(id, keyhiveDocId);
-        if (!cancelled) {
-          setCurrentUserAccess(access ? access.toString() : undefined);
-        }
-      } catch (error) {
-        if (!cancelled) {
-          console.error("[Demo] Error checking access level:", error);
-          setCurrentUserAccess(undefined);
-        }
-      }
-    }
-
-    if (isOpen) {
-      fetchCurrentUserAccess();
-    }
-
-    return () => {
-      cancelled = true;
-    };
-  }, [
-    keyhiveUpdateTracker,
-    identity.active.individual.id,
-    keyhiveDocId,
-    hive,
-    isOpen,
-  ]);
-
-  const accessLevels = ["Pull", "Read", "Write", "Admin"];
-  // You can share at your access level and below
-  const sharingOptions = currentUserAccess
-    ? accessLevels.filter(
-        (_, i) => i <= accessLevels.indexOf(currentUserAccess),
-      )
-    : [];
+  const sharingOptions = useMemo(
+    () =>
+      currentUserAccess
+        ? accessLevels.filter(
+            (_, i) => i <= accessLevels.indexOf(currentUserAccess),
+          )
+        : [],
+    [currentUserAccess],
+  );
 
   // Reset selectedAccessLevel when sharingOptions changes
   useEffect(() => {
@@ -100,41 +60,86 @@ export function ShareModal({
     }
   }, [sharingOptions, selectedAccessLevel]);
 
-  const currentUserHexId = identity.active.individual.id
-    ? uint8ArrayToHex(identity.active.individual.id.toBytes())
-    : null;
+  const handleMakePublic = async () => {
+    try {
+      await hive.setPublicAccess(docUrl, Access.edit());
+    } catch (error) {
+      console.error("[Demo] Error making document public:", error);
+    }
+  };
+
+  // Making a document private is just revoking the public member, the same way
+  // any other member is revoked.
+  const handleMakePrivate = async () => {
+    if (!publicMember) return;
+    try {
+      await hive.revokeMemberFromDoc(docUrl, publicMember.id);
+    } catch (error) {
+      console.error("[Demo] Error making document private:", error);
+    }
+  };
+
+  const displayNameFor = useCallback(
+    (member: DocMember) => {
+      if (member.isPublic) return "Public";
+      if (member.isSyncServer) return "Demo Sync Server";
+      return phonebook?.[member.id]?.name || `0x${member.id.slice(0, 12)}...`;
+    },
+    [phonebook],
+  );
+
+  // Members sorted by display name. Memoized so an unrelated re-render does not
+  // re-sort (each comparison does a phonebook lookup).
+  const sortedMembers = useMemo(
+    () =>
+      [...members].sort((a, b) =>
+        displayNameFor(a).localeCompare(displayNameFor(b)),
+      ),
+    [members, displayNameFor],
+  );
+
+  // Build blob URLs for member avatars once per member/phonebook change, and
+  // revoke them on cleanup so they are not leaked.
+  const [avatarUrls, setAvatarUrls] = useState<Record<string, string>>({});
+  useEffect(() => {
+    const urls: Record<string, string> = {};
+    for (const member of members) {
+      const avatar = phonebook?.[member.id]?.avatar;
+      if (avatar) {
+        urls[member.id] = URL.createObjectURL(
+          new Blob([new Uint8Array(avatar)]),
+        );
+      }
+    }
+    setAvatarUrls(urls);
+    return () => {
+      for (const url of Object.values(urls)) URL.revokeObjectURL(url);
+    };
+  }, [members, phonebook]);
 
   useEffect(() => {
     let cancelled = false;
 
-    async function fetchAccessList() {
+    async function fetchMembers() {
       if (!cancelled) {
         setIsLoadingAccessList(true);
       }
 
-      if (keyhiveDocId) {
-        const accessList = await accessListForDoc(hive, keyhiveDocId);
-        if (!cancelled) {
-          setDocAccessList(accessList);
-          setIsLoadingAccessList(false);
-        }
-      } else {
-        if (!cancelled) {
-          console.error("[Demo] NO DOC!");
-          setDocAccessList({});
-          setIsLoadingAccessList(false);
-        }
+      const list = await hive.listMembers(docUrl);
+      if (!cancelled) {
+        setMembers(list);
+        setIsLoadingAccessList(false);
       }
     }
 
     if (isOpen) {
-      fetchAccessList();
+      fetchMembers();
     }
 
     return () => {
       cancelled = true;
     };
-  }, [keyhiveUpdateTracker, keyhiveDocId, hive, isOpen]);
+  }, [keyhiveUpdateTracker, docUrl, hive, isOpen]);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -162,19 +167,10 @@ export function ShareModal({
         // Validate JSON by parsing it
         const contactCard = ContactCard.fromJson(contactCardString);
 
-        const access = Access.tryFromString(selectedAccessLevel.toLowerCase());
+        // Throws on an unrecognized access level.
+        const access = Access.fromString(selectedAccessLevel);
 
-        if (!access) {
-          console.error(
-            "[Demo] Failed to derive Access from:",
-            selectedAccessLevel,
-          );
-          return;
-        }
-
-        console.log("[Demo] Adding member to doc with access:", access.toString());
         await hive.addMemberToDoc(docUrl, contactCard, access);
-        console.log("[Demo] Member added successfully. Delegation should now sync to other peers.");
 
         setUserIdInput("");
       } catch (error) {
@@ -269,6 +265,37 @@ export function ShareModal({
             </div>
           </form>
 
+          <div className="mb-6 flex items-center justify-between">
+            <p className="text-sm text-foreground">
+              {currentPublicAccess ? (
+                <>
+                  This list is <span className="font-medium">public</span> (
+                  {currentPublicAccess.toUpperCase()})
+                </>
+              ) : (
+                <>
+                  This list is <span className="font-medium">private</span>
+                </>
+              )}
+            </p>
+            {currentUserAccess === "Admin" &&
+              (currentPublicAccess ? (
+                <button
+                  onClick={handleMakePrivate}
+                  className="px-4 py-2 bg-secondary text-secondary-foreground text-sm font-medium rounded-md hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring transition-colors border border-border"
+                >
+                  Make Private
+                </button>
+              ) : (
+                <button
+                  onClick={handleMakePublic}
+                  className="px-4 py-2 bg-secondary text-secondary-foreground text-sm font-medium rounded-md hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring transition-colors border border-border"
+                >
+                  Make Public
+                </button>
+              ))}
+          </div>
+
           <hr className="border-border mb-6" />
 
           <div>
@@ -280,79 +307,61 @@ export function ShareModal({
                 <p className="text-sm text-muted-foreground italic">
                   Loading...
                 </p>
-              ) : Object.keys(docAccessList).length === 0 ? (
+              ) : members.length === 0 ? (
                 <p className="text-sm text-muted-foreground italic">
                   No users have access yet
                 </p>
               ) : (
-                Object.entries(docAccessList)
-                  .sort(([hexIdA], [hexIdB]) => {
-                    const contactA = phonebook?.[hexIdA];
-                    const contactB = phonebook?.[hexIdB];
+                sortedMembers.map((member) => {
+                  const displayName = displayNameFor(member);
+                  const avatarSrc = avatarUrls[member.id] || blankAvatarImg;
 
-                    // Use name if available, otherwise use hex ID for sorting
-                    const nameA =
-                      contactA?.name || `0x${hexIdA.slice(0, 12)}...`;
-                    const nameB =
-                      contactB?.name || `0x${hexIdB.slice(0, 12)}...`;
-
-                    return nameA.localeCompare(nameB);
-                  })
-                  .map(([hexId, access], index) => {
-                    const contact = phonebook?.[hexId];
-                    const displayName =
-                      contact?.name || `0x${hexId.slice(0, 12)}...`;
-                    const avatarSrc = contact?.avatar
-                      ? URL.createObjectURL(
-                          new Blob([new Uint8Array(contact.avatar)]),
-                        )
-                      : blankAvatarImg;
-
-                    return (
-                      <div
-                        key={`${hexId}-${index}`}
-                        className="flex items-center justify-between py-2 px-3 bg-muted rounded-md"
-                      >
-                        <div className="flex items-center space-x-3">
-                          <img
-                            src={avatarSrc}
-                            alt="User avatar"
-                            className="w-8 h-8 rounded-full object-cover"
-                          />
-                          <div>
-                            <div className="text-sm font-medium text-foreground">
-                              {displayName}
-                            </div>
-                            <div className="text-sm font-medium text-foreground">
-                              {access.toString().toUpperCase()}
-                            </div>
+                  return (
+                    <div
+                      key={member.id}
+                      className="flex items-center justify-between py-2 px-3 bg-muted rounded-md"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <img
+                          src={avatarSrc}
+                          alt="User avatar"
+                          className="w-8 h-8 rounded-full object-cover"
+                        />
+                        <div>
+                          <div className="text-sm font-medium text-foreground">
+                            {displayName}
+                          </div>
+                          <div className="text-sm font-medium text-foreground">
+                            {member.access.toString().toUpperCase()}
                           </div>
                         </div>
-                        {currentUserAccess === "Admin" &&
-                          hexId !== currentUserHexId && (
-                            <button
-                              onClick={() => handleRemoveUser(hexId)}
-                              className="text-muted-foreground hover:text-destructive transition-colors p-1"
-                              aria-label="Remove user"
-                            >
-                              <svg
-                                className="w-4 h-4"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M6 18L18 6M6 6l12 12"
-                                />
-                              </svg>
-                            </button>
-                          )}
                       </div>
-                    );
-                  })
+                      {currentUserAccess === "Admin" &&
+                        !member.isSelf &&
+                        !member.isSyncServer && (
+                          <button
+                            onClick={() => handleRemoveUser(member.id)}
+                            className="text-muted-foreground hover:text-destructive transition-colors p-1"
+                            aria-label="Remove user"
+                          >
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M6 18L18 6M6 6l12 12"
+                              />
+                            </svg>
+                          </button>
+                        )}
+                    </div>
+                  );
+                })
               )}
             </div>
           </div>

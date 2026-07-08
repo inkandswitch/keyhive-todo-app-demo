@@ -30,7 +30,9 @@ export default function Frame({
   );
 }
 
-function FrameInner(props: { automergeRepoKeyhive: AutomergeRepoKeyhive }) {
+function FrameInner(props: {
+  automergeRepoKeyhive: AutomergeRepoKeyhive;
+}) {
   const repo = useRepo();
   const [rootDocUrl, setRootDocUrl] = useState<AutomergeUrl | null>(null);
 
@@ -41,14 +43,13 @@ function FrameInner(props: { automergeRepoKeyhive: AutomergeRepoKeyhive }) {
     const storageKey = `keyhive-demo-root-${identityId}`;
     const existingUrl = localStorage.getItem(storageKey);
     if (existingUrl) {
-      console.log(
-        `[Demo] Found existing root doc for identity ${identityId}: ${existingUrl}`,
-      );
       setRootDocUrl(existingUrl as AutomergeUrl);
     } else {
-      console.log(`[Demo] Creating new root doc for identity ${identityId}`);
+      // repo.create (not create2) makes a document unprotected by keyhive. The root doc
+      // is a local, per-identity index that is never shared, so it does not
+      // need keyhive access control. Shared task lists use repo.create2 (see
+      // DocumentList) to become access-controlled keyhive documents.
       const handle = repo.create<RootDocument>({ taskLists: [] });
-      console.log(`[Demo] Created root document: ${handle.url}`);
       localStorage.setItem(storageKey, handle.url);
       setRootDocUrl(handle.url);
     }
