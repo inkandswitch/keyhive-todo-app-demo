@@ -91,12 +91,7 @@ export const TaskList = ({
     return () => {
       cancelled = true;
     };
-  }, [
-    keyhiveUpdateTracker,
-    identity.active.individual.id,
-    docUrl,
-    hive,
-  ]);
+  }, [keyhiveUpdateTracker, identity.active.individual.id, docUrl, hive]);
 
   const canEdit = userAccess === "Edit" || userAccess === "Admin";
   const canRead = canEdit || userAccess === "Read";
@@ -120,7 +115,9 @@ export const TaskList = ({
                   <button
                     type="button"
                     onClick={() => {
-                      navigator.clipboard.writeText(docUrl.replace("automerge:", ""));
+                      navigator.clipboard.writeText(
+                        docUrl.replace("automerge:", ""),
+                      );
                     }}
                     className="px-2 py-1 text-xs font-medium text-secondary-foreground bg-secondary border border-border rounded hover:bg-accent"
                   >
@@ -187,7 +184,9 @@ export const TaskList = ({
                 <button
                   type="button"
                   onClick={() => {
-                    navigator.clipboard.writeText(docUrl.replace("automerge:", ""));
+                    navigator.clipboard.writeText(
+                      docUrl.replace("automerge:", ""),
+                    );
                   }}
                   className="px-2 py-1 text-xs font-medium text-secondary-foreground bg-secondary border border-border rounded hover:bg-accent"
                 >
@@ -276,7 +275,6 @@ export const TaskList = ({
         docUrl={docUrl}
         phonebook={phonebook}
         hive={hive}
-        identity={identity}
         keyhiveUpdateTracker={keyhiveUpdateTracker}
         onClose={() => setIsShareModalOpen(false)}
       />

@@ -41,14 +41,9 @@ function FrameInner(props: { automergeRepoKeyhive: AutomergeRepoKeyhiveRust }) {
     const storageKey = `keyhive-demo-root-${identityId}`;
     const existingUrl = localStorage.getItem(storageKey);
     if (existingUrl) {
-      console.log(
-        `[Demo] Found existing root doc for identity ${identityId}: ${existingUrl}`,
-      );
       setRootDocUrl(existingUrl as AutomergeUrl);
     } else {
-      console.log(`[Demo] Creating new root doc for identity ${identityId}`);
       const handle = repo.create<RootDocument>({ taskLists: [] });
-      console.log(`[Demo] Created root document: ${handle.url}`);
       localStorage.setItem(storageKey, handle.url);
       setRootDocUrl(handle.url);
     }

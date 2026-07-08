@@ -11,13 +11,13 @@ import { fileURLToPath } from "node:url";
 // ("expected instance of Topic/PeerId"). Same approach as the TPW vite
 // configs.
 const automergeEntryDir = dirname(
-  fileURLToPath(import.meta.resolve("@automerge/automerge"))
+  fileURLToPath(import.meta.resolve("@automerge/automerge")),
 );
 const subductionEsmDir = dirname(
-  fileURLToPath(import.meta.resolve("@automerge/automerge-subduction"))
+  fileURLToPath(import.meta.resolve("@automerge/automerge-subduction")),
 );
 const repoEntryDir = dirname(
-  fileURLToPath(import.meta.resolve("@automerge/automerge-repo"))
+  fileURLToPath(import.meta.resolve("@automerge/automerge-repo")),
 );
 
 export default defineConfig({
@@ -26,7 +26,7 @@ export default defineConfig({
     // server. Override with SYNC_SERVER, e.g. SYNC_SERVER=ws://localhost:3030
     // for a local dev server.
     __SYNC_SERVER__: JSON.stringify(
-      process.env.SYNC_SERVER || "wss://keyhive.sync.automerge.org"
+      process.env.SYNC_SERVER || "wss://keyhive.sync.automerge.org",
     ),
     // Sync server identity: its signed contact card JSON and its keyhive peer
     // id. Both must be set together, and they must match the identity the
@@ -34,10 +34,10 @@ export default defineConfig({
     // built-in "keyhive" identity, which the public keyhive sync server and a
     // stock local subduction_cli dev server both run.
     __SYNC_SERVER_CONTACT_CARD__: JSON.stringify(
-      process.env.SYNC_SERVER_CONTACT_CARD || ""
+      process.env.SYNC_SERVER_CONTACT_CARD || "",
     ),
     __SYNC_SERVER_PEER_ID__: JSON.stringify(
-      process.env.SYNC_SERVER_PEER_ID || ""
+      process.env.SYNC_SERVER_PEER_ID || "",
     ),
   },
   base: "./",
@@ -72,7 +72,10 @@ export default defineConfig({
       // bundler-target bindings while slim.js re-exports the web-target
       // bindings, creating two parallel class tables over one wasm instance
       // ("expected instance of Topic/PeerId" from wasm-side assertions).
-      "@automerge/automerge-subduction/slim": resolve(subductionEsmDir, "slim.js"),
+      "@automerge/automerge-subduction/slim": resolve(
+        subductionEsmDir,
+        "slim.js",
+      ),
       "@automerge/automerge-subduction": resolve(subductionEsmDir, "web.js"),
       "@automerge/automerge-repo/slim": resolve(repoEntryDir, "slim.js"),
       "@automerge/automerge-repo": resolve(repoEntryDir, "fullfat.js"),

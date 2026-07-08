@@ -45,7 +45,6 @@ export const DocumentList = ({
   }, [selectedDocument, changeDoc, doc]);
 
   const handleNewDocument = async () => {
-    console.debug("[Demo] Calling handleNewDocument");
     try {
       const newTaskList = await repo.create2<TaskList>(initTaskList());
 
@@ -179,9 +178,6 @@ const DocumentTitle: React.FC<{
     // Retry loading the document when keyhive updates
     useEffect(() => {
       if (!doc) {
-        console.debug(
-          `[Demo] Retrying document load for ${docUrl} (keyhive update ${keyhiveUpdateTracker})`,
-        );
         const documentId = docUrl.replace("automerge:", "") as DocumentId;
         const handle = repo.handles[documentId];
         if (handle) {

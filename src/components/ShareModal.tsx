@@ -1,14 +1,11 @@
 import { useState, useEffect } from "react";
 import { AutomergeUrl } from "@automerge/react/slim";
 import { Phonebook } from "../phonebook";
-import { Identity } from "../active";
-import { accessListForDoc, DocAccessList } from "../utilities";
 import {
   Access,
   AutomergeRepoKeyhiveRust,
   ContactCard,
-  Identifier,
-  uint8ArrayToHex,
+  type DocMember,
 } from "@automerge/automerge-repo-keyhive";
 import blankAvatarImg from "../assets/blankavatar.jpeg";
 
@@ -17,7 +14,6 @@ interface ShareModalProps {
   docUrl: AutomergeUrl;
   phonebook: Phonebook | undefined;
   hive: AutomergeRepoKeyhiveRust;
-  identity: Identity;
   keyhiveUpdateTracker: number;
   onClose: () => void;
 }
@@ -27,58 +23,19 @@ export function ShareModal({
   docUrl,
   phonebook,
   hive,
-  identity,
   keyhiveUpdateTracker,
   onClose,
 }: ShareModalProps) {
   const [userIdInput, setUserIdInput] = useState("");
   const [selectedAccessLevel, setSelectedAccessLevel] = useState("Edit");
-  const [docAccessList, setDocAccessList] = useState<DocAccessList>({});
+  const [members, setMembers] = useState<DocMember[]>([]);
   const [isLoadingAccessList, setIsLoadingAccessList] = useState(true);
-  const [currentUserAccess, setCurrentUserAccess] = useState<
-    string | undefined
-  >(undefined);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function fetchCurrentUserAccess() {
-      const id = identity.active.individual.id;
-      // FIXME: This should probably be an error
-      if (!id) {
-        if (!cancelled) {
-          setCurrentUserAccess(undefined);
-        }
-        return;
-      }
-
-      try {
-        const access = await hive.accessForDoc(id, docUrl);
-        if (!cancelled) {
-          setCurrentUserAccess(access ? access.toString() : undefined);
-        }
-      } catch (error) {
-        if (!cancelled) {
-          console.error("[Demo] Error checking access level:", error);
-          setCurrentUserAccess(undefined);
-        }
-      }
-    }
-
-    if (isOpen) {
-      fetchCurrentUserAccess();
-    }
-
-    return () => {
-      cancelled = true;
-    };
-  }, [
-    keyhiveUpdateTracker,
-    identity.active.individual.id,
-    docUrl,
-    hive,
-    isOpen,
-  ]);
+  // The current user and the public member are just entries in the member
+  // list, tagged by listMembers.
+  const currentUserAccess = members.find((m) => m.isSelf)?.access.toString();
+  const publicMember = members.find((m) => m.isPublic);
+  const currentPublicAccess = publicMember?.access.toString();
 
   const accessLevels = ["Relay", "Read", "Edit", "Admin"];
   // You can share at your access level and below
@@ -98,15 +55,6 @@ export function ShareModal({
     }
   }, [sharingOptions, selectedAccessLevel]);
 
-  const currentUserHexId = identity.active.individual.id
-    ? uint8ArrayToHex(identity.active.individual.id.toBytes())
-    : null;
-
-  // Public access is a grant to a special "public" member, so it shows up in
-  // the access list under this id like any other member.
-  const publicHexId = uint8ArrayToHex(Identifier.publicId().toBytes());
-  const currentPublicAccess = docAccessList[publicHexId];
-
   const handleMakePublic = async () => {
     try {
       await hive.setPublicAccess(docUrl, Access.edit());
@@ -115,28 +63,29 @@ export function ShareModal({
     }
   };
 
-  const displayNameFor = (hexId: string) => {
-    if (hexId === publicHexId) return "Public";
-    return phonebook?.[hexId]?.name || `0x${hexId.slice(0, 12)}...`;
+  const displayNameFor = (member: DocMember) => {
+    if (member.isPublic) return "Public";
+    if (member.isSyncServer) return "Demo Sync Server";
+    return phonebook?.[member.id]?.name || `0x${member.id.slice(0, 12)}...`;
   };
 
   useEffect(() => {
     let cancelled = false;
 
-    async function fetchAccessList() {
+    async function fetchMembers() {
       if (!cancelled) {
         setIsLoadingAccessList(true);
       }
 
-      const accessList = await accessListForDoc(hive, docUrl);
+      const list = await hive.listMembers(docUrl);
       if (!cancelled) {
-        setDocAccessList(accessList);
+        setMembers(list);
         setIsLoadingAccessList(false);
       }
     }
 
     if (isOpen) {
-      fetchAccessList();
+      fetchMembers();
     }
 
     return () => {
@@ -173,9 +122,7 @@ export function ShareModal({
         // Throws on an unrecognized access level.
         const access = Access.fromString(selectedAccessLevel);
 
-        console.log("[Demo] Adding member to doc with access:", access.toString());
         await hive.addMemberToDoc(docUrl, contactCard, access);
-        console.log("[Demo] Member added successfully. Delegation should now sync to other peers.");
 
         setUserIdInput("");
       } catch (error) {
@@ -286,7 +233,9 @@ export function ShareModal({
             {currentUserAccess === "Admin" &&
               (currentPublicAccess ? (
                 <button
-                  onClick={() => handleRemoveUser(publicHexId)}
+                  onClick={() =>
+                    publicMember && handleRemoveUser(publicMember.id)
+                  }
                   className="px-4 py-2 bg-secondary text-secondary-foreground text-sm font-medium rounded-md hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring transition-colors border border-border"
                 >
                   Make Private
@@ -312,18 +261,18 @@ export function ShareModal({
                 <p className="text-sm text-muted-foreground italic">
                   Loading...
                 </p>
-              ) : Object.keys(docAccessList).length === 0 ? (
+              ) : members.length === 0 ? (
                 <p className="text-sm text-muted-foreground italic">
                   No users have access yet
                 </p>
               ) : (
-                Object.entries(docAccessList)
-                  .sort(([hexIdA], [hexIdB]) =>
-                    displayNameFor(hexIdA).localeCompare(displayNameFor(hexIdB))
+                [...members]
+                  .sort((a, b) =>
+                    displayNameFor(a).localeCompare(displayNameFor(b)),
                   )
-                  .map(([hexId, access], index) => {
-                    const contact = phonebook?.[hexId];
-                    const displayName = displayNameFor(hexId);
+                  .map((member, index) => {
+                    const contact = phonebook?.[member.id];
+                    const displayName = displayNameFor(member);
                     const avatarSrc = contact?.avatar
                       ? URL.createObjectURL(
                           new Blob([new Uint8Array(contact.avatar)]),
@@ -332,7 +281,7 @@ export function ShareModal({
 
                     return (
                       <div
-                        key={`${hexId}-${index}`}
+                        key={`${member.id}-${index}`}
                         className="flex items-center justify-between py-2 px-3 bg-muted rounded-md"
                       >
                         <div className="flex items-center space-x-3">
@@ -346,32 +295,31 @@ export function ShareModal({
                               {displayName}
                             </div>
                             <div className="text-sm font-medium text-foreground">
-                              {access.toString().toUpperCase()}
+                              {member.access.toString().toUpperCase()}
                             </div>
                           </div>
                         </div>
-                        {currentUserAccess === "Admin" &&
-                          hexId !== currentUserHexId && (
-                            <button
-                              onClick={() => handleRemoveUser(hexId)}
-                              className="text-muted-foreground hover:text-destructive transition-colors p-1"
-                              aria-label="Remove user"
+                        {currentUserAccess === "Admin" && !member.isSelf && (
+                          <button
+                            onClick={() => handleRemoveUser(member.id)}
+                            className="text-muted-foreground hover:text-destructive transition-colors p-1"
+                            aria-label="Remove user"
+                          >
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
                             >
-                              <svg
-                                className="w-4 h-4"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M6 18L18 6M6 6l12 12"
-                                />
-                              </svg>
-                            </button>
-                          )}
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M6 18L18 6M6 6l12 12"
+                              />
+                            </svg>
+                          </button>
+                        )}
                       </div>
                     );
                   })
