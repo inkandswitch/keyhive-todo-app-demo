@@ -3,15 +3,11 @@
   "private": true,
   "version": "0.0.1",
   "type": "module",
-  "main": "./dist/main.js",
   "scripts": {
     "dev": "vite",
-    "dev:standalone": "vite --config vite.standalone.config.ts",
     "build": "tsc && vite build",
-    "build:standalone": "tsc && vite build --config vite.standalone.config.ts",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview",
-    "preview:standalone": "vite preview --outDir dist"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@automerge/automerge": "3.3.0-fragments.1",
