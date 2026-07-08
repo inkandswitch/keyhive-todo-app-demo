@@ -59,28 +59,49 @@ export default defineConfig({
   },
 
   resolve: {
-    // Subpath aliases must come before the bare specifier (longest-prefix
-    // wins). The "ws" entry shims the Node websocket package with an ES
-    // module, since its CJS-only browser stub cannot be imported by the
-    // source-served packages that re-export the (unused)
-    // WebSocketServerAdapter.
-    alias: {
-      "@automerge/automerge/slim": resolve(automergeEntryDir, "slim.js"),
-      "@automerge/automerge": resolve(automergeEntryDir, "fullfat_bundler.js"),
+    // Each entry is anchored ($) so it matches only the exact bare/slim
+    // specifier, not subpaths. The packages expose subpath exports (e.g.
+    // "@automerge/automerge-repo/helpers/cbor.js"); a greedy prefix alias
+    // would rewrite those onto the entry file ("fullfat.js/helpers/cbor.js",
+    // ENOTDIR), so subpaths must fall through to normal resolution. The "ws"
+    // entry shims the Node websocket package with an ES module, since its
+    // CJS-only browser stub cannot be imported by the source-served packages
+    // that re-export the (unused) WebSocketServerAdapter.
+    alias: [
+      {
+        find: /^@automerge\/automerge\/slim$/,
+        replacement: resolve(automergeEntryDir, "slim.js"),
+      },
+      {
+        find: /^@automerge\/automerge$/,
+        replacement: resolve(automergeEntryDir, "fullfat_bundler.js"),
+      },
       // web.js self-initializes the web-target bindings from inlined base64.
       // Do NOT use bundler.js here: it wires the wasm's JS callbacks to the
       // bundler-target bindings while slim.js re-exports the web-target
       // bindings, creating two parallel class tables over one wasm instance
       // ("expected instance of Topic/PeerId" from wasm-side assertions).
-      "@automerge/automerge-subduction/slim": resolve(
-        subductionEsmDir,
-        "slim.js",
-      ),
-      "@automerge/automerge-subduction": resolve(subductionEsmDir, "web.js"),
-      "@automerge/automerge-repo/slim": resolve(repoEntryDir, "slim.js"),
-      "@automerge/automerge-repo": resolve(repoEntryDir, "fullfat.js"),
-      ws: new URL("./src/shims/ws.ts", import.meta.url).pathname,
-    },
+      {
+        find: /^@automerge\/automerge-subduction\/slim$/,
+        replacement: resolve(subductionEsmDir, "slim.js"),
+      },
+      {
+        find: /^@automerge\/automerge-subduction$/,
+        replacement: resolve(subductionEsmDir, "web.js"),
+      },
+      {
+        find: /^@automerge\/automerge-repo\/slim$/,
+        replacement: resolve(repoEntryDir, "slim.js"),
+      },
+      {
+        find: /^@automerge\/automerge-repo$/,
+        replacement: resolve(repoEntryDir, "fullfat.js"),
+      },
+      {
+        find: "ws",
+        replacement: new URL("./src/shims/ws.ts", import.meta.url).pathname,
+      },
+    ],
     dedupe: ["@keyhive/keyhive"],
   },
 
