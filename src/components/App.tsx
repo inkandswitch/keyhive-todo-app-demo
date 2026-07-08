@@ -11,8 +11,9 @@ import { useHash } from "react-use";
 import { AvatarIcon } from "./AvatarIcon";
 import { UserModal } from "./UserModal";
 import { useState, useEffect, Component, type ReactNode } from "react";
-import { Phonebook } from "../phonebook";
+import { Phonebook, PHONEBOOK_URL } from "../phonebook";
 import { Identity } from "../active";
+import { useReRenderOnDocProgress } from "../hooks";
 import {
   AutomergeRepoKeyhiveSubduction,
   uint8ArrayToHex,
@@ -75,7 +76,11 @@ function App({ docUrl, automergeRepoKeyhive }: AppProps) {
     };
   }, [automergeRepoKeyhive.emitter, automergeRepoKeyhive.networkAdapter]);
 
-  const phonebookUrl = "automerge:4LC8WQxBbLH92x9crDq5HwhUYopU" as AutomergeUrl;
+  // The phonebook is a shared doc that syncs in from the server (or is seeded
+  // locally on first run; see ensurePhonebook). Observe its load progress so
+  // names and avatars (including the sync server's) appear once it arrives,
+  // without a page reload (see useReRenderOnDocProgress).
+  useReRenderOnDocProgress(PHONEBOOK_URL);
   const identity: Identity = {
     active: automergeRepoKeyhive.active,
     contact: {
@@ -84,7 +89,7 @@ function App({ docUrl, automergeRepoKeyhive }: AppProps) {
     },
   };
   const [identityState, setIdentityState] = useState(identity);
-  const [phonebook, changePhonebook] = useDocument<Phonebook>(phonebookUrl);
+  const [phonebook, changePhonebook] = useDocument<Phonebook>(PHONEBOOK_URL);
 
   // Load user's saved info from phonebook on startup
   useEffect(() => {

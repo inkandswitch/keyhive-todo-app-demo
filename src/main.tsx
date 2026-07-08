@@ -13,6 +13,7 @@ import { Repo } from "@automerge/automerge-repo";
 import { PeerId } from "@automerge/automerge-repo/slim";
 import { IndexedDBStorageAdapter } from "@automerge/automerge-repo-storage-indexeddb";
 import Frame from "./components/Frame.tsx";
+import { ensurePhonebook } from "./phonebook.ts";
 
 declare global {
   interface Window {
@@ -57,6 +58,11 @@ async function start() {
   });
 
   window.hive = hive;
+
+  // Seed the shared phonebook if the sync server does not already have it (for
+  // example a freshly started server). Fire-and-forget: the UI renders now and
+  // picks up the phonebook once it loads or is seeded.
+  ensurePhonebook(repo);
 
   const rootElement = document.getElementById("root");
   if (!rootElement) {
