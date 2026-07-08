@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { AutomergeUrl } from "@automerge/react/slim";
 import { Phonebook } from "../phonebook";
 import {
@@ -8,6 +8,9 @@ import {
   type DocMember,
 } from "@automerge/automerge-repo-keyhive";
 import blankAvatarImg from "../assets/blankavatar.jpeg";
+
+// Access levels from lowest to highest. You can share at your own level or below.
+const accessLevels = ["Relay", "Read", "Edit", "Admin"];
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -37,13 +40,15 @@ export function ShareModal({
   const publicMember = members.find((m) => m.isPublic);
   const currentPublicAccess = publicMember?.access.toString();
 
-  const accessLevels = ["Relay", "Read", "Edit", "Admin"];
-  // You can share at your access level and below
-  const sharingOptions = currentUserAccess
-    ? accessLevels.filter(
-        (_, i) => i <= accessLevels.indexOf(currentUserAccess),
-      )
-    : [];
+  const sharingOptions = useMemo(
+    () =>
+      currentUserAccess
+        ? accessLevels.filter(
+            (_, i) => i <= accessLevels.indexOf(currentUserAccess),
+          )
+        : [],
+    [currentUserAccess],
+  );
 
   // Reset selectedAccessLevel when sharingOptions changes
   useEffect(() => {
@@ -60,6 +65,17 @@ export function ShareModal({
       await hive.setPublicAccess(docUrl, Access.edit());
     } catch (error) {
       console.error("[Demo] Error making document public:", error);
+    }
+  };
+
+  // Making a document private is just revoking the public member, the same way
+  // any other member is revoked.
+  const handleMakePrivate = async () => {
+    if (!publicMember) return;
+    try {
+      await hive.revokeMemberFromDoc(docUrl, publicMember.id);
+    } catch (error) {
+      console.error("[Demo] Error making document private:", error);
     }
   };
 
@@ -233,9 +249,7 @@ export function ShareModal({
             {currentUserAccess === "Admin" &&
               (currentPublicAccess ? (
                 <button
-                  onClick={() =>
-                    publicMember && handleRemoveUser(publicMember.id)
-                  }
+                  onClick={handleMakePrivate}
                   className="px-4 py-2 bg-secondary text-secondary-foreground text-sm font-medium rounded-md hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring transition-colors border border-border"
                 >
                   Make Private
@@ -270,7 +284,7 @@ export function ShareModal({
                   .sort((a, b) =>
                     displayNameFor(a).localeCompare(displayNameFor(b)),
                   )
-                  .map((member, index) => {
+                  .map((member) => {
                     const contact = phonebook?.[member.id];
                     const displayName = displayNameFor(member);
                     const avatarSrc = contact?.avatar
@@ -281,7 +295,7 @@ export function ShareModal({
 
                     return (
                       <div
-                        key={`${member.id}-${index}`}
+                        key={member.id}
                         className="flex items-center justify-between py-2 px-3 bg-muted rounded-md"
                       >
                         <div className="flex items-center space-x-3">
@@ -302,26 +316,26 @@ export function ShareModal({
                         {currentUserAccess === "Admin" &&
                           !member.isSelf &&
                           !member.isSyncServer && (
-                          <button
-                            onClick={() => handleRemoveUser(member.id)}
-                            className="text-muted-foreground hover:text-destructive transition-colors p-1"
-                            aria-label="Remove user"
-                          >
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
+                            <button
+                              onClick={() => handleRemoveUser(member.id)}
+                              className="text-muted-foreground hover:text-destructive transition-colors p-1"
+                              aria-label="Remove user"
                             >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M6 18L18 6M6 6l12 12"
-                              />
-                            </svg>
-                          </button>
-                        )}
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M6 18L18 6M6 6l12 12"
+                                />
+                              </svg>
+                            </button>
+                          )}
                       </div>
                     );
                   })

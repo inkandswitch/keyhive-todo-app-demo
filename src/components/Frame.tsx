@@ -30,7 +30,9 @@ export default function Frame({
   );
 }
 
-function FrameInner(props: { automergeRepoKeyhive: AutomergeRepoKeyhiveSubduction }) {
+function FrameInner(props: {
+  automergeRepoKeyhive: AutomergeRepoKeyhiveSubduction;
+}) {
   const repo = useRepo();
   const [rootDocUrl, setRootDocUrl] = useState<AutomergeUrl | null>(null);
 

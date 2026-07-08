@@ -62,7 +62,7 @@ async function start() {
   // Seed the shared phonebook if the sync server does not already have it (for
   // example a freshly started server). Fire-and-forget: the UI renders now and
   // picks up the phonebook once it loads or is seeded.
-  ensurePhonebook(repo);
+  void ensurePhonebook(repo);
 
   const rootElement = document.getElementById("root");
   if (!rootElement) {
