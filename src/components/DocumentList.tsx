@@ -95,14 +95,35 @@ export const DocumentList = ({
 
   return (
     <div className="flex flex-col h-full">
-      {/* Sidebar header */}
+      {/* Sidebar header and controls */}
       <div className="p-4 border-b border-border">
-        <h2 className="text-sm font-medium text-foreground">Documents</h2>
+        <h2 className="text-sm font-medium text-foreground mb-4">Documents</h2>
+        <button
+          onClick={handleNewDocument}
+          className="w-full h-9 px-3 bg-secondary text-secondary-foreground border border-border rounded-md text-sm font-medium cursor-pointer mb-3 hover:bg-accent hover:border-ring transition-colors"
+        >
+          + New Document
+        </button>
+        <form onSubmit={handleLoadUrl} className="flex gap-2">
+          <input
+            type="text"
+            value={inputUrl}
+            onChange={(e) => setInputUrl(e.target.value)}
+            placeholder="Document ID"
+            className="flex-1 h-9 px-3 bg-background border border-border rounded-md text-sm text-foreground box-border"
+          />
+          <button
+            type="submit"
+            className="h-9 px-4 bg-secondary text-secondary-foreground border border-border rounded-md text-sm font-medium cursor-pointer whitespace-nowrap hover:bg-accent hover:border-ring transition-colors"
+          >
+            Load
+          </button>
+        </form>
       </div>
 
       {/* Document list */}
-      <div className="flex-1 overflow-y-auto p-2 pb-6">
-        <div className="space-y-1 mb-6">
+      <div className="flex-1 overflow-y-auto p-2">
+        <div className="space-y-1">
           {doc?.taskLists?.map((docUrl) => (
             <div
               key={docUrl}
@@ -136,32 +157,6 @@ export const DocumentList = ({
             </div>
           ))}
         </div>
-      </div>
-
-      {/* Sidebar footer */}
-      <div className="pt-8 px-4 pb-4 border-t border-border">
-        <button
-          onClick={handleNewDocument}
-          className="w-full h-9 px-3 bg-secondary text-secondary-foreground border border-border rounded-md text-sm font-medium cursor-pointer mb-4 hover:bg-accent hover:border-ring transition-colors"
-        >
-          + New Document
-        </button>
-
-        <form onSubmit={handleLoadUrl} className="flex gap-2">
-          <input
-            type="text"
-            value={inputUrl}
-            onChange={(e) => setInputUrl(e.target.value)}
-            placeholder="Document ID"
-            className="flex-1 h-9 px-3 bg-background border border-border rounded-md text-sm text-foreground box-border"
-          />
-          <button
-            type="submit"
-            className="h-9 px-4 bg-secondary text-secondary-foreground border border-border rounded-md text-sm font-medium cursor-pointer whitespace-nowrap hover:bg-accent hover:border-ring transition-colors"
-          >
-            Load
-          </button>
-        </form>
       </div>
     </div>
   );
