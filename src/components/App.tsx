@@ -161,7 +161,6 @@ function App({ docUrl, automergeRepoKeyhive }: AppProps) {
           }}
           selectedDocument={selectedDocUrl}
           hive={automergeRepoKeyhive}
-          keyhiveUpdateTracker={keyhiveUpdateTracker}
         />
       </div>
 
@@ -205,7 +204,6 @@ function App({ docUrl, automergeRepoKeyhive }: AppProps) {
         onClose={() => setIsUserModalOpen(false)}
         identityState={identityState}
         setIdentityState={setIdentityState}
-        phonebook={phonebook}
         changePhonebook={changePhonebook}
       />
     </div>

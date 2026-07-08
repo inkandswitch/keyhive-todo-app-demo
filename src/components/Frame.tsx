@@ -43,6 +43,10 @@ function FrameInner(props: { automergeRepoKeyhive: AutomergeRepoKeyhiveSubductio
     if (existingUrl) {
       setRootDocUrl(existingUrl as AutomergeUrl);
     } else {
+      // repo.create (not create2) makes a plain legacy document. The root doc
+      // is a local, per-identity index that is never shared, so it does not
+      // need keyhive access control. Shared task lists use repo.create2 (see
+      // DocumentList) to become access-controlled keyhive documents.
       const handle = repo.create<RootDocument>({ taskLists: [] });
       localStorage.setItem(storageKey, handle.url);
       setRootDocUrl(handle.url);

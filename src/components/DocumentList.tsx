@@ -16,7 +16,6 @@ interface DocumentListProps {
   selectedDocument: AutomergeUrl | null;
   onSelectDocument: (docUrl: AutomergeUrl | null) => void;
   hive: AutomergeRepoKeyhiveSubduction;
-  keyhiveUpdateTracker: number;
 }
 
 export const DocumentList = ({
@@ -24,7 +23,6 @@ export const DocumentList = ({
   selectedDocument,
   onSelectDocument,
   hive,
-  keyhiveUpdateTracker,
 }: DocumentListProps) => {
   const repo = useRepo();
   const [doc, changeDoc] = useDocument<RootDocument>(docUrl, {
@@ -32,20 +30,23 @@ export const DocumentList = ({
   });
   const [inputUrl, setInputUrl] = useState("");
 
-  // Add selected document from URL to user's list if not already present
+  // Add the selected document to this identity's list if it is not already
+  // there (e.g. when opening a shared document by URL). Keyed only on the
+  // selection, so deleting a document does not re-trigger this and re-add it.
   useEffect(() => {
-    if (!doc?.taskLists || !selectedDocument) return;
-    if (doc.taskLists.includes(selectedDocument)) return;
-
+    if (!selectedDocument) return;
     changeDoc((d) => {
       if (!d.taskLists.includes(selectedDocument)) {
         d.taskLists.push(selectedDocument);
       }
     });
-  }, [selectedDocument, changeDoc, doc]);
+  }, [selectedDocument, changeDoc]);
 
   const handleNewDocument = async () => {
     try {
+      // repo.create2 routes through ARK's id generator, so the new task list
+      // is an access-controlled, end-to-end encrypted keyhive document (unlike
+      // the plain legacy root doc created in Frame.tsx).
       const newTaskList = await repo.create2<TaskList>(initTaskList());
 
       // Give the sync server relay access so it can sync the document
@@ -62,17 +63,12 @@ export const DocumentList = ({
   };
 
   const handleDeleteDocument = (urlToDelete: AutomergeUrl) => {
-    // Deselect first to prevent the useEffect from re-adding it
     if (urlToDelete === selectedDocument) {
       onSelectDocument(null);
     }
-
-    // Use setTimeout to ensure onSelectDocument(null) takes effect before we delete
-    setTimeout(() => {
-      changeDoc((d) => {
-        d.taskLists = d.taskLists.filter((url) => url !== urlToDelete);
-      });
-    }, 0);
+    changeDoc((d) => {
+      d.taskLists = d.taskLists.filter((url) => url !== urlToDelete);
+    });
   };
 
   const handleLoadUrl = (e: React.FormEvent) => {
@@ -135,10 +131,7 @@ export const DocumentList = ({
               onClick={() => onSelectDocument(docUrl)}
             >
               <div className="flex-grow min-w-0">
-                <DocumentTitle
-                  docUrl={docUrl}
-                  keyhiveUpdateTracker={keyhiveUpdateTracker}
-                />
+                <DocumentTitle docUrl={docUrl} />
               </div>
               <button
                 className={`ml-2 w-5 h-5 flex items-center justify-center text-muted-foreground bg-transparent border-none rounded cursor-pointer transition-all duration-200 hover:text-destructive hover:bg-destructive/10 hover:opacity-100 ${
@@ -162,13 +155,12 @@ export const DocumentList = ({
   );
 };
 
-const DocumentTitle: React.FC<{
-  docUrl: AutomergeUrl;
-  keyhiveUpdateTracker: number;
-}> = React.memo(
+// Memoized on docUrl so an unrelated re-render of the list does not re-render
+// every title. Its own hooks (useReRenderOnDocProgress, useDocument) still
+// re-render it when the document syncs in, e.g. after the viewer is granted
+// access, without a page reload.
+const DocumentTitle: React.FC<{ docUrl: AutomergeUrl }> = React.memo(
   ({ docUrl }) => {
-    // Re-render (and re-title) once the document syncs in, e.g. after the
-    // viewer is granted access, without a page reload.
     useReRenderOnDocProgress(docUrl);
     const [doc] = useDocument<TaskList>(docUrl);
 
@@ -184,12 +176,5 @@ const DocumentTitle: React.FC<{
 
     const title = doc.title || "Untitled Task List";
     return <span className="text-sm font-medium text-foreground">{title}</span>;
-  },
-  (prevProps, nextProps) => {
-    // Only re-render if docUrl or keyhiveUpdateTracker changes
-    return (
-      prevProps.docUrl === nextProps.docUrl &&
-      prevProps.keyhiveUpdateTracker === nextProps.keyhiveUpdateTracker
-    );
   },
 );

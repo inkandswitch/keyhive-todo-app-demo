@@ -299,7 +299,9 @@ export function ShareModal({
                             </div>
                           </div>
                         </div>
-                        {currentUserAccess === "Admin" && !member.isSelf && (
+                        {currentUserAccess === "Admin" &&
+                          !member.isSelf &&
+                          !member.isSyncServer && (
                           <button
                             onClick={() => handleRemoveUser(member.id)}
                             className="text-muted-foreground hover:text-destructive transition-colors p-1"
