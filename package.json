@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@automerge/automerge-repo": "2.5.2-alpha.0",
-    "@automerge/automerge-repo-keyhive": "0.1.0-alpha.16x",
+    "@automerge/automerge-repo-keyhive": "link:../automerge-repo-keyhive",
     "@automerge/automerge-repo-network-websocket": "2.5.2-alpha.0",
     "@automerge/automerge-repo-storage-indexeddb": "2.5.2-alpha.0",
     "@automerge/react": "2.5.2-alpha.0",
