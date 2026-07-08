@@ -81,14 +81,13 @@ function App({ docUrl, automergeRepoKeyhive }: AppProps) {
   // names and avatars (including the sync server's) appear once it arrives,
   // without a page reload (see useReRenderOnDocProgress).
   useReRenderOnDocProgress(PHONEBOOK_URL);
-  const identity: Identity = {
+  const [identityState, setIdentityState] = useState<Identity>(() => ({
     active: automergeRepoKeyhive.active,
     contact: {
       peerId: automergeRepoKeyhive.active.peerId,
       avatar: null,
     },
-  };
-  const [identityState, setIdentityState] = useState(identity);
+  }));
   const [phonebook, changePhonebook] = useDocument<Phonebook>(PHONEBOOK_URL);
 
   // Load user's saved info from phonebook on startup

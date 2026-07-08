@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { AutomergeUrl } from "@automerge/react/slim";
 import { Phonebook } from "../phonebook";
 import {
@@ -79,11 +79,43 @@ export function ShareModal({
     }
   };
 
-  const displayNameFor = (member: DocMember) => {
-    if (member.isPublic) return "Public";
-    if (member.isSyncServer) return "Demo Sync Server";
-    return phonebook?.[member.id]?.name || `0x${member.id.slice(0, 12)}...`;
-  };
+  const displayNameFor = useCallback(
+    (member: DocMember) => {
+      if (member.isPublic) return "Public";
+      if (member.isSyncServer) return "Demo Sync Server";
+      return phonebook?.[member.id]?.name || `0x${member.id.slice(0, 12)}...`;
+    },
+    [phonebook],
+  );
+
+  // Members sorted by display name. Memoized so an unrelated re-render does not
+  // re-sort (each comparison does a phonebook lookup).
+  const sortedMembers = useMemo(
+    () =>
+      [...members].sort((a, b) =>
+        displayNameFor(a).localeCompare(displayNameFor(b)),
+      ),
+    [members, displayNameFor],
+  );
+
+  // Build blob URLs for member avatars once per member/phonebook change, and
+  // revoke them on cleanup so they are not leaked.
+  const [avatarUrls, setAvatarUrls] = useState<Record<string, string>>({});
+  useEffect(() => {
+    const urls: Record<string, string> = {};
+    for (const member of members) {
+      const avatar = phonebook?.[member.id]?.avatar;
+      if (avatar) {
+        urls[member.id] = URL.createObjectURL(
+          new Blob([new Uint8Array(avatar)]),
+        );
+      }
+    }
+    setAvatarUrls(urls);
+    return () => {
+      for (const url of Object.values(urls)) URL.revokeObjectURL(url);
+    };
+  }, [members, phonebook]);
 
   useEffect(() => {
     let cancelled = false;
@@ -280,65 +312,56 @@ export function ShareModal({
                   No users have access yet
                 </p>
               ) : (
-                [...members]
-                  .sort((a, b) =>
-                    displayNameFor(a).localeCompare(displayNameFor(b)),
-                  )
-                  .map((member) => {
-                    const contact = phonebook?.[member.id];
-                    const displayName = displayNameFor(member);
-                    const avatarSrc = contact?.avatar
-                      ? URL.createObjectURL(
-                          new Blob([new Uint8Array(contact.avatar)]),
-                        )
-                      : blankAvatarImg;
+                sortedMembers.map((member) => {
+                  const displayName = displayNameFor(member);
+                  const avatarSrc = avatarUrls[member.id] || blankAvatarImg;
 
-                    return (
-                      <div
-                        key={member.id}
-                        className="flex items-center justify-between py-2 px-3 bg-muted rounded-md"
-                      >
-                        <div className="flex items-center space-x-3">
-                          <img
-                            src={avatarSrc}
-                            alt="User avatar"
-                            className="w-8 h-8 rounded-full object-cover"
-                          />
-                          <div>
-                            <div className="text-sm font-medium text-foreground">
-                              {displayName}
-                            </div>
-                            <div className="text-sm font-medium text-foreground">
-                              {member.access.toString().toUpperCase()}
-                            </div>
+                  return (
+                    <div
+                      key={member.id}
+                      className="flex items-center justify-between py-2 px-3 bg-muted rounded-md"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <img
+                          src={avatarSrc}
+                          alt="User avatar"
+                          className="w-8 h-8 rounded-full object-cover"
+                        />
+                        <div>
+                          <div className="text-sm font-medium text-foreground">
+                            {displayName}
+                          </div>
+                          <div className="text-sm font-medium text-foreground">
+                            {member.access.toString().toUpperCase()}
                           </div>
                         </div>
-                        {currentUserAccess === "Admin" &&
-                          !member.isSelf &&
-                          !member.isSyncServer && (
-                            <button
-                              onClick={() => handleRemoveUser(member.id)}
-                              className="text-muted-foreground hover:text-destructive transition-colors p-1"
-                              aria-label="Remove user"
-                            >
-                              <svg
-                                className="w-4 h-4"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M6 18L18 6M6 6l12 12"
-                                />
-                              </svg>
-                            </button>
-                          )}
                       </div>
-                    );
-                  })
+                      {currentUserAccess === "Admin" &&
+                        !member.isSelf &&
+                        !member.isSyncServer && (
+                          <button
+                            onClick={() => handleRemoveUser(member.id)}
+                            className="text-muted-foreground hover:text-destructive transition-colors p-1"
+                            aria-label="Remove user"
+                          >
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M6 18L18 6M6 6l12 12"
+                              />
+                            </svg>
+                          </button>
+                        )}
+                    </div>
+                  );
+                })
               )}
             </div>
           </div>

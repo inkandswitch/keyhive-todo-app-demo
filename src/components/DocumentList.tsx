@@ -5,7 +5,7 @@ import {
   useRepo,
   isValidAutomergeUrl,
 } from "@automerge/react/slim";
-import { initTaskList, TaskList } from "./TaskList";
+import { initTaskList, TaskList } from "../taskListDoc";
 import { RootDocument } from "../rootDoc";
 import { useState, useEffect } from "react";
 import { AutomergeRepoKeyhiveSubduction } from "@automerge/automerge-repo-keyhive";

@@ -5,24 +5,7 @@ import { AutomergeRepoKeyhiveSubduction } from "@automerge/automerge-repo-keyhiv
 import { Phonebook } from "../phonebook";
 import { Identity } from "../active";
 import { useReRenderOnDocProgress } from "../hooks";
-
-export interface Task {
-  title: string;
-  done: boolean;
-}
-
-export interface TaskList {
-  title: string;
-  tasks: Task[];
-}
-
-// A helper function to consistently initialize a task list.
-export function initTaskList() {
-  return {
-    title: `TODO: ${new Date().toLocaleString()}`,
-    tasks: [{ done: false, title: "" }],
-  };
-}
+import { TaskList as TaskListDoc } from "../taskListDoc";
 
 interface TaskListProps {
   docUrl: AutomergeUrl;
@@ -47,7 +30,7 @@ export const TaskList = ({
   // Re-render when the document becomes available so a newly-granted doc
   // renders without a page reload (see useReRenderOnDocProgress).
   useReRenderOnDocProgress(docUrl);
-  const [doc, changeDoc] = useDocument<TaskList>(docUrl);
+  const [doc, changeDoc] = useDocument<TaskListDoc>(docUrl);
 
   // Check access level and update state. Recalculate when keyhive updates.
   useEffect(() => {
@@ -101,6 +84,7 @@ export const TaskList = ({
 
   const canEdit = userAccess === "Edit" || userAccess === "Admin";
   const canRead = canEdit || userAccess === "Read";
+  const docId = docUrl.replace("automerge:", "");
 
   // Wait for the first access check, and for an accessible document to finish
   // syncing, before deciding what to show.
@@ -121,14 +105,12 @@ export const TaskList = ({
               <div className="pb-6 mb-6">
                 <div className="flex items-center gap-2">
                   <h2 className="text-sm text-muted-foreground">
-                    Doc ID: {docUrl.replace("automerge:", "")}
+                    Doc ID: {docId}
                   </h2>
                   <button
                     type="button"
                     onClick={() => {
-                      navigator.clipboard.writeText(
-                        docUrl.replace("automerge:", ""),
-                      );
+                      navigator.clipboard.writeText(docId);
                     }}
                     className="px-2 py-1 text-xs font-medium text-secondary-foreground bg-secondary border border-border rounded hover:bg-accent"
                   >
@@ -190,14 +172,12 @@ export const TaskList = ({
               </div>
               <div className="flex items-center gap-2">
                 <h2 className="text-sm text-muted-foreground">
-                  Doc ID: {docUrl.replace("automerge:", "")}
+                  Doc ID: {docId}
                 </h2>
                 <button
                   type="button"
                   onClick={() => {
-                    navigator.clipboard.writeText(
-                      docUrl.replace("automerge:", ""),
-                    );
+                    navigator.clipboard.writeText(docId);
                   }}
                   className="px-2 py-1 text-xs font-medium text-secondary-foreground bg-secondary border border-border rounded hover:bg-accent"
                 >
