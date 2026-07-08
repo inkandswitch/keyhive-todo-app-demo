@@ -47,40 +47,6 @@ export async function getOrCreatePhonebook(
   return phonebook.url;
 }
 
-// export async function findPhonebook({
-//   repo,
-//   syncServer,
-// }: {
-//   repo: Repo;
-//   syncServer: SyncServer;
-// }) {
-//   // FIXME: Hard-coding the phonebook Automerge URL for now
-//   // const phonebookDocUrl = await getOrCreatePhonebook(repo, serverContactCardJson)
-//   // console.log("id doc url: " + phonebookDocUrl)
-//   const phonebookUrl = "automerge:4LC8WQxBbLH92x9crDq5HwhUYopU" as AutomergeUrl;
-//   const phonebookDoc: DocHandle<Phonebook> = await repo.find(phonebookUrl);
-//   phonebookDoc.change(
-//     async (doc: Phonebook) => await addServerToPhonebook(syncServer, doc),
-//   );
-//   return phonebookDoc;
-// }
-
-// export async function addServerToPhonebook(server: SyncServer, doc: Phonebook) {
-//   const serverHexId = uint8ArrayToHex(server.individual.id.toBytes());
-//   const avatar = await getServerAvatar();
-//   if (!doc[serverHexId]) {
-//     doc[serverHexId] = {
-//       peerId: server.peerId,
-//       name: "Demo Sync Server",
-//       avatar: avatar,
-//     };
-//   } else {
-//     if (!doc[serverHexId].avatar) {
-//       doc[serverHexId].avatar = avatar;
-//     }
-//   }
-// }
-
 async function getServerAvatar(): Promise<Uint8Array> {
   const avatarFile = await fetch(
     new URL("./assets/HAL-9000.webp", import.meta.url).href,

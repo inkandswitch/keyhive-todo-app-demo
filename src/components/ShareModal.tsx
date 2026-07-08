@@ -1,13 +1,13 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { AutomergeUrl } from "@automerge/react/slim";
 import { Phonebook } from "../phonebook";
 import { Identity } from "../active";
 import { accessListForDoc, DocAccessList } from "../utilities";
 import {
   Access,
-  AutomergeRepoKeyhive,
+  AutomergeRepoKeyhiveRust,
   ContactCard,
-  docIdFromAutomergeUrl,
+  Identifier,
   uint8ArrayToHex,
 } from "@automerge/automerge-repo-keyhive";
 import blankAvatarImg from "../assets/blankavatar.jpeg";
@@ -16,7 +16,7 @@ interface ShareModalProps {
   isOpen: boolean;
   docUrl: AutomergeUrl;
   phonebook: Phonebook | undefined;
-  hive: AutomergeRepoKeyhive;
+  hive: AutomergeRepoKeyhiveRust;
   identity: Identity;
   keyhiveUpdateTracker: number;
   onClose: () => void;
@@ -32,14 +32,12 @@ export function ShareModal({
   onClose,
 }: ShareModalProps) {
   const [userIdInput, setUserIdInput] = useState("");
-  const [selectedAccessLevel, setSelectedAccessLevel] = useState("Write");
+  const [selectedAccessLevel, setSelectedAccessLevel] = useState("Edit");
   const [docAccessList, setDocAccessList] = useState<DocAccessList>({});
   const [isLoadingAccessList, setIsLoadingAccessList] = useState(true);
   const [currentUserAccess, setCurrentUserAccess] = useState<
     string | undefined
   >(undefined);
-
-  const keyhiveDocId = useMemo(() => docIdFromAutomergeUrl(docUrl), [docUrl]);
 
   useEffect(() => {
     let cancelled = false;
@@ -55,7 +53,7 @@ export function ShareModal({
       }
 
       try {
-        const access = await hive.accessForDoc(id, keyhiveDocId);
+        const access = await hive.accessForDoc(id, docUrl);
         if (!cancelled) {
           setCurrentUserAccess(access ? access.toString() : undefined);
         }
@@ -77,12 +75,12 @@ export function ShareModal({
   }, [
     keyhiveUpdateTracker,
     identity.active.individual.id,
-    keyhiveDocId,
+    docUrl,
     hive,
     isOpen,
   ]);
 
-  const accessLevels = ["Pull", "Read", "Write", "Admin"];
+  const accessLevels = ["Relay", "Read", "Edit", "Admin"];
   // You can share at your access level and below
   const sharingOptions = currentUserAccess
     ? accessLevels.filter(
@@ -104,6 +102,24 @@ export function ShareModal({
     ? uint8ArrayToHex(identity.active.individual.id.toBytes())
     : null;
 
+  // Public access is a grant to a special "public" member, so it shows up in
+  // the access list under this id like any other member.
+  const publicHexId = uint8ArrayToHex(Identifier.publicId().toBytes());
+  const currentPublicAccess = docAccessList[publicHexId];
+
+  const handleMakePublic = async () => {
+    try {
+      await hive.setPublicAccess(docUrl, Access.edit());
+    } catch (error) {
+      console.error("[Demo] Error making document public:", error);
+    }
+  };
+
+  const displayNameFor = (hexId: string) => {
+    if (hexId === publicHexId) return "Public";
+    return phonebook?.[hexId]?.name || `0x${hexId.slice(0, 12)}...`;
+  };
+
   useEffect(() => {
     let cancelled = false;
 
@@ -112,18 +128,10 @@ export function ShareModal({
         setIsLoadingAccessList(true);
       }
 
-      if (keyhiveDocId) {
-        const accessList = await accessListForDoc(hive, keyhiveDocId);
-        if (!cancelled) {
-          setDocAccessList(accessList);
-          setIsLoadingAccessList(false);
-        }
-      } else {
-        if (!cancelled) {
-          console.error("[Demo] NO DOC!");
-          setDocAccessList({});
-          setIsLoadingAccessList(false);
-        }
+      const accessList = await accessListForDoc(hive, docUrl);
+      if (!cancelled) {
+        setDocAccessList(accessList);
+        setIsLoadingAccessList(false);
       }
     }
 
@@ -134,7 +142,7 @@ export function ShareModal({
     return () => {
       cancelled = true;
     };
-  }, [keyhiveUpdateTracker, keyhiveDocId, hive, isOpen]);
+  }, [keyhiveUpdateTracker, docUrl, hive, isOpen]);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -162,15 +170,8 @@ export function ShareModal({
         // Validate JSON by parsing it
         const contactCard = ContactCard.fromJson(contactCardString);
 
-        const access = Access.tryFromString(selectedAccessLevel.toLowerCase());
-
-        if (!access) {
-          console.error(
-            "[Demo] Failed to derive Access from:",
-            selectedAccessLevel,
-          );
-          return;
-        }
+        // Throws on an unrecognized access level.
+        const access = Access.fromString(selectedAccessLevel);
 
         console.log("[Demo] Adding member to doc with access:", access.toString());
         await hive.addMemberToDoc(docUrl, contactCard, access);
@@ -269,6 +270,37 @@ export function ShareModal({
             </div>
           </form>
 
+          <div className="mb-6 flex items-center justify-between">
+            <p className="text-sm text-foreground">
+              {currentPublicAccess ? (
+                <>
+                  This list is <span className="font-medium">public</span> (
+                  {currentPublicAccess.toUpperCase()})
+                </>
+              ) : (
+                <>
+                  This list is <span className="font-medium">private</span>
+                </>
+              )}
+            </p>
+            {currentUserAccess === "Admin" &&
+              (currentPublicAccess ? (
+                <button
+                  onClick={() => handleRemoveUser(publicHexId)}
+                  className="px-4 py-2 bg-secondary text-secondary-foreground text-sm font-medium rounded-md hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring transition-colors border border-border"
+                >
+                  Make Private
+                </button>
+              ) : (
+                <button
+                  onClick={handleMakePublic}
+                  className="px-4 py-2 bg-secondary text-secondary-foreground text-sm font-medium rounded-md hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring transition-colors border border-border"
+                >
+                  Make Public
+                </button>
+              ))}
+          </div>
+
           <hr className="border-border mb-6" />
 
           <div>
@@ -286,22 +318,12 @@ export function ShareModal({
                 </p>
               ) : (
                 Object.entries(docAccessList)
-                  .sort(([hexIdA], [hexIdB]) => {
-                    const contactA = phonebook?.[hexIdA];
-                    const contactB = phonebook?.[hexIdB];
-
-                    // Use name if available, otherwise use hex ID for sorting
-                    const nameA =
-                      contactA?.name || `0x${hexIdA.slice(0, 12)}...`;
-                    const nameB =
-                      contactB?.name || `0x${hexIdB.slice(0, 12)}...`;
-
-                    return nameA.localeCompare(nameB);
-                  })
+                  .sort(([hexIdA], [hexIdB]) =>
+                    displayNameFor(hexIdA).localeCompare(displayNameFor(hexIdB))
+                  )
                   .map(([hexId, access], index) => {
                     const contact = phonebook?.[hexId];
-                    const displayName =
-                      contact?.name || `0x${hexId.slice(0, 12)}...`;
+                    const displayName = displayNameFor(hexId);
                     const avatarSrc = contact?.avatar
                       ? URL.createObjectURL(
                           new Blob([new Uint8Array(contact.avatar)]),

@@ -1,11 +1,11 @@
 import ReactDOM from "react-dom/client";
 import "./index.css";
-import { AutomergeRepoKeyhive, MODULE_INSTANCE_ID, isWasmInitialized } from "@automerge/automerge-repo-keyhive";
+import { AutomergeRepoKeyhiveRust, MODULE_INSTANCE_ID, isWasmInitialized } from "@automerge/automerge-repo-keyhive";
 import Frame from "./components/Frame.tsx";
 
 declare global {
   interface Window {
-    hive: AutomergeRepoKeyhive;
+    hive: AutomergeRepoKeyhiveRust;
   }
 }
 

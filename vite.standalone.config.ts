@@ -2,10 +2,33 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import wasm from "vite-plugin-wasm";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+// Force a single copy of the automerge and subduction modules, resolved from
+// this project's node_modules. The linked automerge-repo-keyhive package has
+// its own node_modules, and a duplicate copy of a WASM-backed module is a
+// separate module instance, which breaks wasm-bindgen instanceof checks
+// ("expected instance of Topic/PeerId"). Same approach as the TPW vite
+// configs.
+const automergeEntryDir = dirname(
+  fileURLToPath(import.meta.resolve("@automerge/automerge"))
+);
+const subductionEsmDir = dirname(
+  fileURLToPath(import.meta.resolve("@automerge/automerge-subduction"))
+);
+const repoEntryDir = dirname(
+  fileURLToPath(import.meta.resolve("@automerge/automerge-repo"))
+);
 
 export default defineConfig({
   define: {
-    __SYNC_SERVER__: JSON.stringify(process.env.SYNC_SERVER || "ws://localhost:3030"),
+    // Default to the production keyhive sync server. For a local server, run
+    // with SYNC_SERVER=ws://localhost:3030 (its identity must match the
+    // canonical keyhive-sync key the demo registers as its relay).
+    __SYNC_SERVER__: JSON.stringify(
+      process.env.SYNC_SERVER || "wss://keyhive.sync.automerge.org"
+    ),
   },
   base: "./",
   server: {
@@ -23,6 +46,61 @@ export default defineConfig({
     rollupOptions: {
       input: "./standalone.html",
     },
+  },
+
+  resolve: {
+    // Subpath aliases must come before the bare specifier (longest-prefix
+    // wins). The "ws" entry shims the Node websocket package with an ES
+    // module, since its CJS-only browser stub cannot be imported by the
+    // source-served packages that re-export the (unused)
+    // WebSocketServerAdapter.
+    alias: {
+      "@automerge/automerge/slim": resolve(automergeEntryDir, "slim.js"),
+      "@automerge/automerge": resolve(automergeEntryDir, "fullfat_bundler.js"),
+      // web.js self-initializes the web-target bindings from inlined base64.
+      // Do NOT use bundler.js here: it wires the wasm's JS callbacks to the
+      // bundler-target bindings while slim.js re-exports the web-target
+      // bindings, creating two parallel class tables over one wasm instance
+      // ("expected instance of Topic/PeerId" from wasm-side assertions).
+      "@automerge/automerge-subduction/slim": resolve(subductionEsmDir, "slim.js"),
+      "@automerge/automerge-subduction": resolve(subductionEsmDir, "web.js"),
+      "@automerge/automerge-repo/slim": resolve(repoEntryDir, "slim.js"),
+      "@automerge/automerge-repo": resolve(repoEntryDir, "fullfat.js"),
+      ws: new URL("./src/shims/ws.ts", import.meta.url).pathname,
+    },
+    dedupe: ["@keyhive/keyhive"],
+  },
+
+  // Prevent pre-bundling of the automerge and keyhive packages. Pre-bundling
+  // drops WASM ESM imports, ignores the aliases above, and bakes a private
+  // copy of any WASM-backed dependency into the optimized chunk.
+  optimizeDeps: {
+    exclude: [
+      "@automerge/automerge",
+      "@automerge/automerge/slim",
+      "@automerge/automerge-repo",
+      "@automerge/automerge-repo/slim",
+      "@automerge/automerge-repo-storage-indexeddb",
+      "@automerge/automerge-repo-network-websocket",
+      "@automerge/react",
+      "@automerge/automerge-subduction",
+      "@automerge/automerge-subduction/slim",
+      "@automerge/automerge-repo-keyhive",
+      "@keyhive/keyhive",
+      "@keyhive/keyhive/slim",
+    ],
+    // CommonJS dependencies of the excluded packages still need
+    // pre-bundling for CJS-to-ESM interop.
+    include: [
+      "@automerge/automerge-repo > debug",
+      "@automerge/automerge-repo > bs58check",
+      "@automerge/automerge-repo > fast-sha256",
+      "@automerge/automerge-repo > cbor-x",
+      "@automerge/automerge-repo > eventemitter3",
+      "@automerge/automerge-repo > uuid",
+      "@automerge/automerge-repo > isomorphic-ws",
+      "@automerge/automerge-repo > xstate",
+    ],
   },
 
   plugins: [wasm(), react()],

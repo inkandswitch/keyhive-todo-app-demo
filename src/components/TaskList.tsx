@@ -1,7 +1,7 @@
 import { AutomergeUrl, useDocument, updateText } from "@automerge/react/slim";
 import { ShareModal } from "./ShareModal";
-import { useState, useEffect, useMemo } from "react";
-import { AutomergeRepoKeyhive, docIdFromAutomergeUrl } from "@automerge/automerge-repo-keyhive";
+import { useState, useEffect } from "react";
+import { AutomergeRepoKeyhiveRust } from "@automerge/automerge-repo-keyhive";
 import { Phonebook } from "../phonebook";
 import { Identity } from "../active";
 
@@ -26,7 +26,7 @@ export function initTaskList() {
 interface TaskListProps {
   docUrl: AutomergeUrl;
   phonebook: Phonebook | undefined;
-  hive: AutomergeRepoKeyhive;
+  hive: AutomergeRepoKeyhiveRust;
   identity: Identity;
   keyhiveUpdateTracker: number;
 }
@@ -46,8 +46,6 @@ export const TaskList = ({
     suspense: true,
   });
 
-  const keyhiveDocId = useMemo(() => docIdFromAutomergeUrl(docUrl), [docUrl]);
-
   // Check access level and update state. Recalculate when keyhive updates.
   useEffect(() => {
     let cancelled = false;
@@ -64,13 +62,17 @@ export const TaskList = ({
       }
 
       try {
-        const access = await hive.accessForDoc(id, keyhiveDocId);
+        // Best of direct and public access (matches TPW's gate), so
+        // publicly-shared docs are readable by peers with no direct
+        // membership.
+        const access = await hive.bestAccessForDoc(id, docUrl);
         if (cancelled) return;
 
         if (access) {
-          const accessString = access.toString();
-          setUserAccess(accessString);
-          setShouldShowShareButton(accessString !== "Pull");
+          setUserAccess(access.toString());
+          // Relay-only members sync ciphertext but cannot read, so there
+          // is nothing for them to share.
+          setShouldShowShareButton(access.isReader);
         } else {
           setUserAccess(undefined);
           setShouldShowShareButton(false);
@@ -92,13 +94,12 @@ export const TaskList = ({
   }, [
     keyhiveUpdateTracker,
     identity.active.individual.id,
-    keyhiveDocId,
+    docUrl,
     hive,
   ]);
 
-  const canEdit = userAccess === "Write" || userAccess === "Admin";
-  const canRead =
-    userAccess === "Read" || userAccess === "Write" || userAccess === "Admin";
+  const canEdit = userAccess === "Edit" || userAccess === "Admin";
+  const canRead = canEdit || userAccess === "Read";
 
   if (!canRead) {
     return (

@@ -8,7 +8,7 @@ import App from "./App";
 import { Suspense, useEffect, useState } from "react";
 import { RootDocument } from "../rootDoc";
 import {
-  AutomergeRepoKeyhive,
+  AutomergeRepoKeyhiveRust,
   uint8ArrayToHex,
 } from "@automerge/automerge-repo-keyhive";
 
@@ -20,7 +20,7 @@ export default function Frame({
   automergeRepoKeyhive,
   repo,
 }: {
-  automergeRepoKeyhive: AutomergeRepoKeyhive;
+  automergeRepoKeyhive: AutomergeRepoKeyhiveRust;
   repo: Repo;
 }) {
   return (
@@ -30,7 +30,7 @@ export default function Frame({
   );
 }
 
-function FrameInner(props: { automergeRepoKeyhive: AutomergeRepoKeyhive }) {
+function FrameInner(props: { automergeRepoKeyhive: AutomergeRepoKeyhiveRust }) {
   const repo = useRepo();
   const [rootDocUrl, setRootDocUrl] = useState<AutomergeUrl | null>(null);
 

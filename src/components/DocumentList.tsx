@@ -9,16 +9,13 @@ import {
 import { initTaskList, TaskList } from "./TaskList";
 import { RootDocument } from "../rootDoc";
 import { useState, useEffect } from "react";
-import { Access, AutomergeRepoKeyhive, ContactCard, SyncServer } from "@automerge/automerge-repo-keyhive";
-
-type AccessString = "admin" | "write" | "read" | "pull";
+import { AutomergeRepoKeyhiveRust } from "@automerge/automerge-repo-keyhive";
 
 interface DocumentListProps {
   docUrl: AutomergeUrl;
   selectedDocument: AutomergeUrl | null;
   onSelectDocument: (docUrl: AutomergeUrl | null) => void;
-  syncServer: SyncServer;
-  hive: AutomergeRepoKeyhive;
+  hive: AutomergeRepoKeyhiveRust;
   keyhiveUpdateTracker: number;
 }
 
@@ -26,7 +23,6 @@ export const DocumentList = ({
   docUrl,
   selectedDocument,
   onSelectDocument,
-  syncServer,
   hive,
   keyhiveUpdateTracker,
 }: DocumentListProps) => {
@@ -51,34 +47,11 @@ export const DocumentList = ({
   const handleNewDocument = async () => {
     console.debug("[Demo] Calling handleNewDocument");
     try {
-      const membersToAdd: [ContactCard, AccessString][] = [];
-
-      const serverContactCard = ContactCard.fromJson(syncServer.contactCard.toJson());
-      if (serverContactCard) {
-        membersToAdd.push([serverContactCard, "pull"]);
-      } else {
-        console.error("[Demo] Missing syncServer individual!");
-      }
-
       const newTaskList = await repo.create2<TaskList>(initTaskList());
 
-      for (const [contactCard, cap] of membersToAdd) {
-        const access = Access.tryFromString(cap);
-        if (!access) {
-          console.error("[Demo] Failed to derive Access");
-          continue;
-        }
-        console.debug(
-          `[Demo] calling addMemberToDoc with access: ${access.toString()}`,
-        );
-        try {
-          await hive.addMemberToDoc(newTaskList.url, contactCard, access);
-          console.debug("[Demo] called addMemberToDoc");
-        } catch (err) {
-          console.error(`[Demo] addMemberToDoc failed: ${err}`);
-          throw err;
-        }
-      }
+      // Give the sync server relay access so it can sync the document
+      // without being able to read it.
+      await hive.addSyncServerRelayToDoc(newTaskList.url);
 
       changeDoc((d) => {
         d.taskLists.push(newTaskList.url);

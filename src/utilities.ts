@@ -1,18 +1,18 @@
+import { AutomergeUrl } from "@automerge/react/slim";
 import {
-  DocumentId as KeyhiveDocumentId,
   uint8ArrayToHex,
-  AutomergeRepoKeyhive,
+  AutomergeRepoKeyhiveRust,
 } from "@automerge/automerge-repo-keyhive";
 
 // Store access as strings instead of WASM objects
 export type DocAccessList = Record<string, string>;
 
 export async function accessListForDoc(
-  hive: AutomergeRepoKeyhive,
-  targetDocId: KeyhiveDocumentId,
+  hive: AutomergeRepoKeyhiveRust,
+  docUrl: AutomergeUrl,
 ): Promise<DocAccessList> {
   const accessList: DocAccessList = {};
-  const members = await hive.docMemberCapabilities(targetDocId);
+  const members = await hive.docMemberCapabilities(docUrl);
   members.forEach((capability) => {
     const hexId = uint8ArrayToHex(capability.who.id.toBytes());
     // Convert WASM Access object to string immediately
