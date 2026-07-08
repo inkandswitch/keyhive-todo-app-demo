@@ -42,12 +42,13 @@ async function start() {
   initKeyhiveWasm();
 
   const storage = new IndexedDBStorageAdapter();
-  const peerIdSuffix = `keyhive-demo-${Math.random().toString(36).slice(2)}`;
 
   const { hive, repo } = await initializeAutomergeRepoKeyhiveRustWithRepo({
     createRepo: (config) => new Repo(config),
     storage,
-    peerIdSuffix,
+    // ARK appends a random component for peer uniqueness, so a plain label is
+    // all the demo needs to pass.
+    peerIdSuffix: "keyhive-demo",
     automaticArchiveIngestion: true,
     cachingMode: "periodic",
     syncServer,

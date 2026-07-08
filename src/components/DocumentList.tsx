@@ -4,12 +4,12 @@ import {
   AutomergeUrl,
   useRepo,
   isValidAutomergeUrl,
-  DocumentId,
 } from "@automerge/react/slim";
 import { initTaskList, TaskList } from "./TaskList";
 import { RootDocument } from "../rootDoc";
 import { useState, useEffect } from "react";
 import { AutomergeRepoKeyhiveRust } from "@automerge/automerge-repo-keyhive";
+import { useReRenderOnDocProgress } from "../hooks";
 
 interface DocumentListProps {
   docUrl: AutomergeUrl;
@@ -171,30 +171,11 @@ const DocumentTitle: React.FC<{
   docUrl: AutomergeUrl;
   keyhiveUpdateTracker: number;
 }> = React.memo(
-  ({ docUrl, keyhiveUpdateTracker }) => {
-    const repo = useRepo();
+  ({ docUrl }) => {
+    // Re-render (and re-title) once the document syncs in, e.g. after the
+    // viewer is granted access, without a page reload.
+    useReRenderOnDocProgress(docUrl);
     const [doc] = useDocument<TaskList>(docUrl);
-
-    // Retry loading the document when keyhive updates
-    useEffect(() => {
-      if (!doc) {
-        const documentId = docUrl.replace("automerge:", "") as DocumentId;
-        const handle = repo.handles[documentId];
-        if (handle) {
-          if (handle.isUnavailable()) {
-            // Call reload to switch the handle's state from unavailable back to loading
-            handle.reload();
-            handle.request();
-          } else if (
-            !(handle.state === "requesting" || handle.state === "loading")
-          ) {
-            repo.find(docUrl);
-          }
-        } else {
-          repo.find(docUrl);
-        }
-      }
-    }, [keyhiveUpdateTracker, doc, repo, docUrl]);
 
     if (!doc) {
       const docId = docUrl.replace("automerge:", "");

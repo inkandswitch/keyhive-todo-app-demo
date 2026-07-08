@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { AutomergeRepoKeyhiveRust } from "@automerge/automerge-repo-keyhive";
 import { Phonebook } from "../phonebook";
 import { Identity } from "../active";
+import { useReRenderOnDocProgress } from "../hooks";
 
 export interface Task {
   title: string;
@@ -41,10 +42,12 @@ export const TaskList = ({
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [shouldShowShareButton, setShouldShowShareButton] = useState(false);
   const [userAccess, setUserAccess] = useState<string | undefined>(undefined);
+  const [accessChecked, setAccessChecked] = useState(false);
 
-  const [doc, changeDoc] = useDocument<TaskList>(docUrl, {
-    suspense: true,
-  });
+  // Re-render when the document becomes available so a newly-granted doc
+  // renders without a page reload (see useReRenderOnDocProgress).
+  useReRenderOnDocProgress(docUrl);
+  const [doc, changeDoc] = useDocument<TaskList>(docUrl);
 
   // Check access level and update state. Recalculate when keyhive updates.
   useEffect(() => {
@@ -57,6 +60,7 @@ export const TaskList = ({
         if (!cancelled) {
           setShouldShowShareButton(false);
           setUserAccess(undefined);
+          setAccessChecked(true);
         }
         return;
       }
@@ -83,6 +87,8 @@ export const TaskList = ({
           setUserAccess(undefined);
           setShouldShowShareButton(false);
         }
+      } finally {
+        if (!cancelled) setAccessChecked(true);
       }
     }
 
@@ -96,18 +102,23 @@ export const TaskList = ({
   const canEdit = userAccess === "Edit" || userAccess === "Admin";
   const canRead = canEdit || userAccess === "Read";
 
-  if (!canRead) {
+  // Wait for the first access check, and for an accessible document to finish
+  // syncing, before deciding what to show.
+  if (!accessChecked || (canRead && !doc)) {
+    return (
+      <div className="h-full flex items-center justify-center bg-muted text-muted-foreground">
+        Loading...
+      </div>
+    );
+  }
+
+  if (!canRead || !doc) {
     return (
       <div className="h-full flex flex-col bg-muted">
         <div className="flex-1 overflow-y-auto flex justify-center items-start py-8">
           <div className="w-full max-w-2xl px-6">
             <div className="bg-background rounded-lg p-6 shadow-sm">
               <div className="pb-6 mb-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <h1 className="flex-1 text-lg font-medium text-foreground">
-                    {doc.title}
-                  </h1>
-                </div>
                 <div className="flex items-center gap-2">
                   <h2 className="text-sm text-muted-foreground">
                     Doc ID: {docUrl.replace("automerge:", "")}
