@@ -9,12 +9,9 @@ interface UserModalProps {
   onClose: () => void;
   identityState: Identity;
   setIdentityState: React.Dispatch<React.SetStateAction<Identity>>;
-  phonebook: Phonebook | undefined;
   changePhonebook:
     | ((updater: (doc: Phonebook) => void | Error) => void)
     | undefined;
-  currentName?: string;
-  currentAvatarUrl?: string;
 }
 
 export function UserModal({
@@ -232,7 +229,9 @@ export function UserModal({
               <button
                 type="button"
                 onClick={() => {
-                  navigator.clipboard.writeText(identityState.active.contactCard.toJson());
+                  navigator.clipboard.writeText(
+                    identityState.active.contactCard.toJson(),
+                  );
                 }}
                 className="mt-2 px-3 py-1.5 text-sm font-medium text-secondary-foreground bg-secondary border border-border rounded-md hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring"
               >

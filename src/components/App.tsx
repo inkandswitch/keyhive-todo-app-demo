@@ -11,12 +11,15 @@ import { useHash } from "react-use";
 import { AvatarIcon } from "./AvatarIcon";
 import { UserModal } from "./UserModal";
 import { useState, useEffect, Component, type ReactNode } from "react";
-import { Phonebook } from "../phonebook";
+import { Phonebook, PHONEBOOK_URL } from "../phonebook";
 import { Identity } from "../active";
+import { useReRenderOnDocProgress } from "../hooks";
 import {
   AutomergeRepoKeyhive,
   uint8ArrayToHex,
   ContactCard,
+  KEYHIVE_SYNC_SERVER_CONTACT_CARD_JSON,
+  KEYHIVE_SYNC_SERVER_PEER_ID,
 } from "@automerge/automerge-repo-keyhive";
 
 type AppProps = {
@@ -62,25 +65,30 @@ function App({ docUrl, automergeRepoKeyhive }: AppProps) {
       }, 100);
     };
 
+    // "update" fires for locally-originated keyhive changes; remote ops
+    // arriving over sync signal "ingest-remote" on the network adapter.
     automergeRepoKeyhive.emitter.on("update", handler);
-    automergeRepoKeyhive.emitter.on("ingest", handler);
+    automergeRepoKeyhive.networkAdapter.on("ingest-remote", handler);
     return () => {
       clearTimeout(timeoutId);
       automergeRepoKeyhive.emitter.off("update", handler);
-      automergeRepoKeyhive.emitter.off("ingest", handler);
+      automergeRepoKeyhive.networkAdapter.off("ingest-remote", handler);
     };
-  }, [automergeRepoKeyhive.emitter]);
+  }, [automergeRepoKeyhive.emitter, automergeRepoKeyhive.networkAdapter]);
 
-  const phonebookUrl = "automerge:4LC8WQxBbLH92x9crDq5HwhUYopU" as AutomergeUrl;
-  const identity: Identity = {
+  // The phonebook is a shared doc that syncs in from the server (or is seeded
+  // locally on first run; see ensurePhonebook). Observe its load progress so
+  // names and avatars (including the sync server's) appear once it arrives,
+  // without a page reload (see useReRenderOnDocProgress).
+  useReRenderOnDocProgress(PHONEBOOK_URL);
+  const [identityState, setIdentityState] = useState<Identity>(() => ({
     active: automergeRepoKeyhive.active,
     contact: {
       peerId: automergeRepoKeyhive.active.peerId,
       avatar: null,
     },
-  };
-  const [identityState, setIdentityState] = useState(identity);
-  const [phonebook, changePhonebook] = useDocument<Phonebook>(phonebookUrl);
+  }));
+  const [phonebook, changePhonebook] = useDocument<Phonebook>(PHONEBOOK_URL);
 
   // Load user's saved info from phonebook on startup
   useEffect(() => {
@@ -102,36 +110,31 @@ function App({ docUrl, automergeRepoKeyhive }: AppProps) {
     }
   }, [phonebook, identityState.active.individual]);
 
-  // Add sync server to phonebook if not already there
+  // Add sync server to phonebook if not already there. The demo targets the
+  // canonical keyhive sync server identity (also used by the local dev
+  // server), so its contact card is a known constant.
   useEffect(() => {
-    if (phonebook && automergeRepoKeyhive.syncServer) {
-      const serverContactCard = ContactCard.fromJson(
-        automergeRepoKeyhive.syncServer.contactCard.toJson(),
-      );
-      if (serverContactCard) {
-        const serverHexId = uint8ArrayToHex(serverContactCard.individualId.bytes);
-        if (!phonebook[serverHexId]) {
-          // Load HAL avatar and add to phonebook
-          fetch(halAvatarUrl)
-            .then((res) => res.arrayBuffer())
-            .then((buffer) => {
-              changePhonebook((doc) => {
-                doc[serverHexId] = {
-                  peerId: automergeRepoKeyhive.syncServer.peerId,
-                  name: "Demo Sync Server",
-                  avatar: new Uint8Array(buffer),
-                };
-              });
-            });
-        }
-      }
+    if (!phonebook) return;
+    const serverContactCard = ContactCard.fromJson(
+      KEYHIVE_SYNC_SERVER_CONTACT_CARD_JSON,
+    );
+    if (!serverContactCard) return;
+    const serverHexId = uint8ArrayToHex(serverContactCard.individualId.bytes);
+    if (!phonebook[serverHexId]) {
+      // Load HAL avatar and add to phonebook
+      fetch(halAvatarUrl)
+        .then((res) => res.arrayBuffer())
+        .then((buffer) => {
+          changePhonebook((doc) => {
+            doc[serverHexId] = {
+              peerId: KEYHIVE_SYNC_SERVER_PEER_ID,
+              name: "Demo Sync Server",
+              avatar: new Uint8Array(buffer),
+            };
+          });
+        });
     }
-  }, [
-    phonebook,
-    automergeRepoKeyhive.syncServer,
-    automergeRepoKeyhive.keyhive,
-    changePhonebook,
-  ]);
+  }, [phonebook, changePhonebook]);
 
   const [hash, setHash] = useHash();
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
@@ -156,9 +159,7 @@ function App({ docUrl, automergeRepoKeyhive }: AppProps) {
             }
           }}
           selectedDocument={selectedDocUrl}
-          syncServer={automergeRepoKeyhive.syncServer}
           hive={automergeRepoKeyhive}
-          keyhiveUpdateTracker={keyhiveUpdateTracker}
         />
       </div>
 
@@ -196,20 +197,12 @@ function App({ docUrl, automergeRepoKeyhive }: AppProps) {
             </div>
           )}
         </div>
-
-        {/* Footer */}
-        <footer className="border-t border-border px-6 py-3 flex items-center justify-between bg-background">
-          <p className="text-sm text-muted-foreground">
-            Powered by Automerge + Vite + React + TypeScript
-          </p>
-        </footer>
       </div>
       <UserModal
         isOpen={isUserModalOpen}
         onClose={() => setIsUserModalOpen(false)}
         identityState={identityState}
         setIdentityState={setIdentityState}
-        phonebook={phonebook}
         changePhonebook={changePhonebook}
       />
     </div>

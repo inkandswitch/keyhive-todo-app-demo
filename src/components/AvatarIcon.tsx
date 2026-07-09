@@ -1,3 +1,4 @@
+import { useEffect, useMemo } from "react";
 import { Identity } from "../active";
 import blankAvatarImg from "../assets/blankavatar.jpeg";
 
@@ -7,13 +8,22 @@ interface AvatarIconProps {
 }
 
 export function AvatarIcon({ onClick, identityState }: AvatarIconProps) {
-  const avatarUrl = identityState.contact.avatar
-    ? URL.createObjectURL(
-        new Blob([identityState.contact.avatar as BlobPart], {
-          type: "image/jpeg",
-        }),
-      )
-    : null;
+  const avatar = identityState.contact.avatar;
+  const avatarUrl = useMemo(
+    () =>
+      avatar
+        ? URL.createObjectURL(
+            new Blob([avatar as BlobPart], { type: "image/jpeg" }),
+          )
+        : null,
+    [avatar],
+  );
+  // Free the blob URL when the avatar changes or the component unmounts.
+  useEffect(() => {
+    return () => {
+      if (avatarUrl) URL.revokeObjectURL(avatarUrl);
+    };
+  }, [avatarUrl]);
 
   return (
     <button
