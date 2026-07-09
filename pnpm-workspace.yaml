@@ -1,2 +1,2 @@
 overrides:
-  '@automerge/automerge-repo-keyhive': link:../automerge-repo-keyhive
+  '@automerge/automerge-repo-keyhive': 0.4.0-alpha.sub.1

@@ -15,7 +15,7 @@ import { Phonebook, PHONEBOOK_URL } from "../phonebook";
 import { Identity } from "../active";
 import { useReRenderOnDocProgress } from "../hooks";
 import {
-  AutomergeRepoKeyhiveSubduction,
+  AutomergeRepoKeyhive,
   uint8ArrayToHex,
   ContactCard,
   KEYHIVE_SYNC_SERVER_CONTACT_CARD_JSON,
@@ -24,7 +24,7 @@ import {
 
 type AppProps = {
   docUrl: AutomergeUrl;
-  automergeRepoKeyhive: AutomergeRepoKeyhiveSubduction;
+  automergeRepoKeyhive: AutomergeRepoKeyhive;
 };
 
 class ErrorBoundary extends Component<

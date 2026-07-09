@@ -8,7 +8,7 @@ import App from "./App";
 import { Suspense, useEffect, useState } from "react";
 import { RootDocument } from "../rootDoc";
 import {
-  AutomergeRepoKeyhiveSubduction,
+  AutomergeRepoKeyhive,
   uint8ArrayToHex,
 } from "@automerge/automerge-repo-keyhive";
 
@@ -20,7 +20,7 @@ export default function Frame({
   automergeRepoKeyhive,
   repo,
 }: {
-  automergeRepoKeyhive: AutomergeRepoKeyhiveSubduction;
+  automergeRepoKeyhive: AutomergeRepoKeyhive;
   repo: Repo;
 }) {
   return (
@@ -31,7 +31,7 @@ export default function Frame({
 }
 
 function FrameInner(props: {
-  automergeRepoKeyhive: AutomergeRepoKeyhiveSubduction;
+  automergeRepoKeyhive: AutomergeRepoKeyhive;
 }) {
   const repo = useRepo();
   const [rootDocUrl, setRootDocUrl] = useState<AutomergeUrl | null>(null);
@@ -45,7 +45,7 @@ function FrameInner(props: {
     if (existingUrl) {
       setRootDocUrl(existingUrl as AutomergeUrl);
     } else {
-      // repo.create (not create2) makes a plain legacy document. The root doc
+      // repo.create (not create2) makes a document unprotected by keyhive. The root doc
       // is a local, per-identity index that is never shared, so it does not
       // need keyhive access control. Shared task lists use repo.create2 (see
       // DocumentList) to become access-controlled keyhive documents.

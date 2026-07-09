@@ -1,7 +1,7 @@
 import { AutomergeUrl, useDocument, updateText } from "@automerge/react/slim";
 import { ShareModal } from "./ShareModal";
 import { useState, useEffect } from "react";
-import { AutomergeRepoKeyhiveSubduction } from "@automerge/automerge-repo-keyhive";
+import { AutomergeRepoKeyhive } from "@automerge/automerge-repo-keyhive";
 import { Phonebook } from "../phonebook";
 import { Identity } from "../active";
 import { useReRenderOnDocProgress } from "../hooks";
@@ -10,7 +10,7 @@ import { TaskList as TaskListDoc } from "../taskListDoc";
 interface TaskListProps {
   docUrl: AutomergeUrl;
   phonebook: Phonebook | undefined;
-  hive: AutomergeRepoKeyhiveSubduction;
+  hive: AutomergeRepoKeyhive;
   identity: Identity;
   keyhiveUpdateTracker: number;
 }

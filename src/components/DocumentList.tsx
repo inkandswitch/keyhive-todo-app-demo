@@ -8,14 +8,14 @@ import {
 import { initTaskList, TaskList } from "../taskListDoc";
 import { RootDocument } from "../rootDoc";
 import { useState, useEffect } from "react";
-import { AutomergeRepoKeyhiveSubduction } from "@automerge/automerge-repo-keyhive";
+import { AutomergeRepoKeyhive } from "@automerge/automerge-repo-keyhive";
 import { useReRenderOnDocProgress } from "../hooks";
 
 interface DocumentListProps {
   docUrl: AutomergeUrl;
   selectedDocument: AutomergeUrl | null;
   onSelectDocument: (docUrl: AutomergeUrl | null) => void;
-  hive: AutomergeRepoKeyhiveSubduction;
+  hive: AutomergeRepoKeyhive;
 }
 
 export const DocumentList = ({
@@ -46,7 +46,7 @@ export const DocumentList = ({
     try {
       // repo.create2 routes through ARK's id generator, so the new task list
       // is an access-controlled, end-to-end encrypted keyhive document (unlike
-      // the plain legacy root doc created in Frame.tsx).
+      // the unprotected root doc created in Frame.tsx).
       const newTaskList = await repo.create2<TaskList>(initTaskList());
 
       // Give the sync server relay access so it can sync the document
