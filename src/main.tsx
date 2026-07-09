@@ -23,6 +23,7 @@ declare global {
   const __SYNC_SERVER__: string;
   const __SYNC_SERVER_CONTACT_CARD__: string;
   const __SYNC_SERVER_PEER_ID__: string;
+  const __PHONEBOOK_DOC_ID__: string;
 }
 
 // The identity to register as the sync server relay. When a custom contact

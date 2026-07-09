@@ -1,6 +1,8 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import wasm from "vite-plugin-wasm";
+// The slim entry so loading this config does not initialize the Automerge WASM.
+import { isValidAutomergeUrl } from "@automerge/automerge-repo/slim";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -19,6 +21,31 @@ const subductionEsmDir = dirname(
 const repoEntryDir = dirname(
   fileURLToPath(import.meta.resolve("@automerge/automerge-repo")),
 );
+
+// The document id of the shared phonebook, which holds every peer's name and
+// avatar. It is required rather than hardcoded so that each deployment of the
+// demo has its own phonebook, shared only with the people it hands the id to.
+// The phonebook is unencrypted and unprotected, so anyone who knows the id can
+// read and write it.
+const phonebookDocId = process.env.PHONEBOOK_DOC_ID;
+if (!phonebookDocId) {
+  throw new Error(
+    "PHONEBOOK_DOC_ID is required. Generate one with `pnpm gen:phonebook-id`, " +
+      "then pass it in, e.g. PHONEBOOK_DOC_ID=automerge:... pnpm dev",
+  );
+}
+if (
+  !isValidAutomergeUrl(
+    phonebookDocId.startsWith("automerge:")
+      ? phonebookDocId
+      : `automerge:${phonebookDocId}`,
+  )
+) {
+  throw new Error(
+    `PHONEBOOK_DOC_ID is not a valid Automerge document id: "${phonebookDocId}". ` +
+      "Generate one with `pnpm gen:phonebook-id`.",
+  );
+}
 
 export default defineConfig({
   define: {
@@ -39,6 +66,7 @@ export default defineConfig({
     __SYNC_SERVER_PEER_ID__: JSON.stringify(
       process.env.SYNC_SERVER_PEER_ID || "",
     ),
+    __PHONEBOOK_DOC_ID__: JSON.stringify(phonebookDocId),
   },
   base: "./",
   server: {

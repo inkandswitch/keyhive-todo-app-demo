@@ -18,12 +18,33 @@ demonstrates:
 
 ## Run
 
+The demo needs a phonebook document id, which it requires you to supply. Generate
+one, then pass it in:
+
 ```
 pnpm install
-pnpm dev
+pnpm gen:phonebook-id
+PHONEBOOK_DOC_ID=automerge:... pnpm dev
 ```
 
 The app opens at http://localhost:5557.
+
+## Phonebook configuration
+
+The phonebook is a shared document holding every peer's display name and avatar.
+It is an ordinary Automerge document: unencrypted, and writable by anyone who
+knows its id. So rather than shipping one hardcoded id that every copy of the
+demo writes to, the demo requires you to supply your own via the
+`PHONEBOOK_DOC_ID` build variable. Generate an id with `pnpm gen:phonebook-id`
+and share it with the people you want in your phonebook.
+
+The document does not need to exist beforehand. The first peer to run with a
+given id seeds it, and later peers pick it up from the sync server.
+
+Keep in mind that the id is the only thing protecting the phonebook. Anyone you
+give it to, and anyone they give it to, can edit its entries. This is fine for a
+demo but is not an access-control mechanism. The TODO documents themselves are
+end-to-end encrypted and access-controlled by keyhive; the phonebook is not.
 
 ## Sync server configuration
 

@@ -1,4 +1,10 @@
-import { AutomergeUrl, DocumentId, PeerId, Repo } from "@automerge/react";
+import {
+  AutomergeUrl,
+  PeerId,
+  Repo,
+  interpretAsDocumentId,
+  isValidAutomergeUrl,
+} from "@automerge/react";
 
 export type Contact = {
   peerId: PeerId;
@@ -9,18 +15,32 @@ export type Contact = {
 // Maps hexId to Contact
 export type Phonebook = Record<string, Contact>;
 
-// The phonebook is a single well-known document that every peer reads and
-// writes, so names and avatars are visible to everyone. It is an ordinary
-// (unencrypted) document, which is fine for a demo but not private.
-export const PHONEBOOK_URL =
-  "automerge:4LC8WQxBbLH92x9crDq5HwhUYopU" as AutomergeUrl;
-const PHONEBOOK_DOC_ID = "4LC8WQxBbLH92x9crDq5HwhUYopU" as DocumentId;
+// The phonebook is a single document that every peer reads and writes, so names
+// and avatars are visible to everyone who has its id. Its id comes from the
+// required PHONEBOOK_DOC_ID build variable rather than being hardcoded, so each
+// deployment gets a phonebook shared only with the people it hands the id to.
+// The document is still ordinary and unencrypted: anyone who knows the id can
+// read and write it.
+export const PHONEBOOK_URL: AutomergeUrl = (() => {
+  const url = __PHONEBOOK_DOC_ID__.startsWith("automerge:")
+    ? __PHONEBOOK_DOC_ID__
+    : `automerge:${__PHONEBOOK_DOC_ID__}`;
+  if (!isValidAutomergeUrl(url)) {
+    throw new Error(
+      `PHONEBOOK_DOC_ID is not a valid Automerge document id: "${__PHONEBOOK_DOC_ID__}". ` +
+        "Generate one with `pnpm gen:phonebook-id`.",
+    );
+  }
+  return url;
+})();
+
+const PHONEBOOK_DOC_ID = interpretAsDocumentId(PHONEBOOK_URL);
 
 // A deterministic Automerge document that materializes to an empty map `{}`.
 // (Its single change adds and removes a key, so the doc has heads and imports
 // as a ready document while carrying no state.) When the phonebook is not
 // available (for example against a freshly started sync server that has never
-// seen it), any peer seeds it under the well-known id by importing these exact
+// seen it), any peer seeds it under the configured id by importing these exact
 // bytes. Every peer imports the same bytes into the same id, so their copies
 // share a root; peers then only ever write their own hex-id entry, so the
 // per-peer writes merge cleanly.
