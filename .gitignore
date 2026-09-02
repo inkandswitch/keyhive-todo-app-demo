@@ -18,6 +18,10 @@ dist-ssr
 !.env.example
 .vite
 
+# Nix build symlinks
+result
+result-*
+
 # Editor directories and files
 .idea
 .DS_Store

@@ -20,7 +20,24 @@ import type { DirectoryDoc } from "@automerge/keyhive-react";
 export type Phonebook = DirectoryDoc;
 
 export const PHONEBOOK_NOTICE =
-  "Names come from the demo phonebook, an unencrypted document that anyone with its id can edit. They are not verified.";
+  "Display names and avatars come from the demo phonebook: an unencrypted " +
+  "document that anyone holding its id can edit, so they are self-asserted " +
+  "and forgeable. DNS name claims are stored here too but are not taken on " +
+  "the phonebook's word — their badge comes from DNSSEC and the named " +
+  "document's own certificate, so a forged claim cannot earn one.";
+
+// The notice above is about display names, and stays true. DNS name claims
+// stored alongside them are a different case worth being precise about.
+//
+// A claim in the phonebook is forgeable, exactly like a display name: anyone
+// holding the id can write `dnsName: "example.com"` into anyone's entry. What
+// they cannot forge is the *badge*, because it is not read from this document.
+// A verifying directory resolves the domain's DNSSEC-signed `_onomancy` record
+// and checks whether it designates that identity, so a forged claim renders as
+// `mismatch` or `no-claim` and never as `verified`.
+//
+// That is the property that lets an untrusted document hold claims safely: the
+// document carries the assertion, and DNS carries the authority.
 
 // The phonebook is a single document that every peer reads and writes, so names
 // and avatars are visible to everyone who has its id. Its id comes from the

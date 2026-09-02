@@ -171,9 +171,26 @@ function GroupModal({
         namePlaceholder="Name this group"
         saveLabel="Save group"
       />
+      {/*
+       * No public access control on a group, deliberately.
+       *
+       * For a document, `setPublicAccess` grants the public agent access to
+       * that one document. For a group it is `addMember(publicAgent, group,
+       * access)` — it makes the world a MEMBER of the group, so everyone
+       * transitively receives every document the group holds, including
+       * through nested groups. The blast radius is not one document but
+       * everything the group can reach, now and in future.
+       *
+       * A button labelled "Make Public" cannot honestly convey that, and we
+       * have no demo case that wants it, so the control is not offered at all.
+       * Suppressing it is the whole fix: there is no access level that makes
+       * the button safe, because the hazard is the membership edge and not the
+       * level on it.
+       */}
       <AccessEditor
         target={target}
         refreshToken={keyhiveVersion}
+        showPublicAccess={false}
         labelForMember={(member) =>
           member.isSyncServer ? syncServer.DISPLAY_NAME : undefined
         }

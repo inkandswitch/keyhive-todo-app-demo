@@ -10,10 +10,14 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "check:linked": "node scripts/check-linked-freshness.mjs",
     "gen:phonebook-id": "node scripts/generate-phonebook-id.mjs",
     "lint": "eslint . && prettier --check \"**/*.{ts,tsx,js,mjs}\"",
     "lint:fix": "eslint . --fix && prettier --write \"**/*.{ts,tsx,js,mjs}\"",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@automerge/automerge": "catalog:",
@@ -23,6 +27,7 @@
     "@automerge/automerge-subduction": "catalog:",
     "@automerge/keyhive-react": "catalog:",
     "@automerge/react": "catalog:",
+    "@inkandswitch/onomancy": "catalog:",
     "@keyhive/keyhive": "catalog:",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -41,11 +46,14 @@
     "eslint": "^9.5.0",
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.22",
+    "fast-check": "^4.9.0",
     "globals": "^15.0.0",
+    "playwright": "^1.62.1",
     "postcss": "^8.5.6",
     "prettier": "^3.9.6",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.9.2",
-    "vite": "^5.4.20"
+    "vite": "^5.4.20",
+    "vitest": "^2.1.9"
   }
 }

@@ -70,6 +70,12 @@ export default [
       "**/dist/*",
       "**/node_modules/*",
       "eslint.config.mjs",
+      // Throwaway drivers used to verify the onomancy path by hand: hardcoded
+      // paths, a live DNS record, node-only globals. Scratch rather than
+      // source, and tracked in .ignore/TODO.md as promote-or-delete. Ignored
+      // so `pnpm lint` reports on the app rather than on the scaffolding.
+      "*.tmp.mjs",
+      ".ignore/*",
     ],
   },
   js.configs.recommended,
@@ -126,6 +132,20 @@ export default [
         1,
         { allowConstantExport: true },
       ],
+    },
+  },
+  {
+    // e2e drivers are Node scripts whose `probe(...)` callbacks are serialised and
+    // evaluated in the page, so one file legitimately spans both realms:
+    // `chromium` and `process` at the top level, `window` and `crypto` inside
+    // the callback. Nothing distinguishes them syntactically, so both sets of
+    // globals are allowed here rather than sprinkling directives.
+    files: ["e2e/**/*.mjs"],
+
+    languageOptions: {
+      globals: { ...globals.node, ...globals.browser },
+      ecmaVersion: "latest",
+      sourceType: "module",
     },
   },
   {

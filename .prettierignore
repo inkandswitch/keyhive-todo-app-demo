@@ -1,3 +1,9 @@
 dist
 node_modules
 pnpm-lock.yaml
+
+# Throwaway Playwright/DNS drivers used to verify the onomancy path by hand.
+# Scratch, not source: they carry hardcoded paths and a live DNS record, and
+# are tracked in .ignore/TODO.md as promote-or-delete. Ignored rather than
+# formatted so `pnpm lint` reflects the state of the app.
+*.tmp.mjs

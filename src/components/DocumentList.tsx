@@ -11,6 +11,7 @@ import { useState, useEffect } from "react";
 import { AutomergeRepoKeyhive } from "@automerge/automerge-repo-keyhive";
 import { useReRenderOnDocProgress } from "@automerge/keyhive-react";
 import { ContextMenu } from "./ContextMenu";
+import { NameModal } from "./NameModal";
 import { useContextMenu } from "../useContextMenu";
 import { errorMessage, log } from "../log";
 
@@ -19,6 +20,8 @@ interface DocumentListProps {
   selectedDocument: AutomergeUrl | null;
   onSelectDocument: (docUrl: AutomergeUrl | null) => void;
   hive: AutomergeRepoKeyhive;
+  /** This identity's namestore, the target for `~` names. */
+  namestoreUrl: AutomergeUrl | null;
 }
 
 export const DocumentList = ({
@@ -26,8 +29,11 @@ export const DocumentList = ({
   selectedDocument,
   onSelectDocument,
   hive,
+  namestoreUrl,
 }: DocumentListProps) => {
   const repo = useRepo();
+  // The document whose name is being edited, if any.
+  const [namingDoc, setNamingDoc] = useState<AutomergeUrl | null>(null);
   const [doc, changeDoc] = useDocument<RootDocument>(docUrl, {
     suspense: true,
   });
@@ -152,6 +158,10 @@ export const DocumentList = ({
               onContextMenu={(e) =>
                 openMenu(e, [
                   {
+                    label: "Name this list...",
+                    onSelect: () => setNamingDoc(docUrl),
+                  },
+                  {
                     label: "Remove from sidebar",
                     onSelect: () => handleDeleteDocument(docUrl),
                   },
@@ -181,6 +191,15 @@ export const DocumentList = ({
       </div>
 
       <ContextMenu state={menu} onClose={closeMenu} />
+
+      {namingDoc && (
+        <NameModal
+          isOpen
+          docUrl={namingDoc}
+          namestoreUrl={namestoreUrl}
+          onClose={() => setNamingDoc(null)}
+        />
+      )}
     </div>
   );
 };

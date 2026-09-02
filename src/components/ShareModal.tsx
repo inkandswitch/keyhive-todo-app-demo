@@ -108,9 +108,20 @@ export function ShareModal({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Share this list">
+      {/*
+       * publicAccessLevel is stated rather than inherited. "edit" is the
+       * deliberate behaviour this demo has always had — a public task list
+       * anyone can add tasks to is the collaborative case worth showing, and
+       * it was hardcoded as `Access.edit()` here before the component was
+       * extracted. It is spelled out because the library's default happens to
+       * agree by accident: that default is this very call site's old constant,
+       * promoted to an API contract by extraction, and it is wrong for every
+       * other document type. See NamestorePanel, where it must be "read".
+       */}
       <AccessEditor
         target={target}
         refreshToken={keyhiveVersion}
+        publicAccessLevel="edit"
         enabled={isOpen}
         labelForMember={(member) =>
           member.isSyncServer ? syncServer.DISPLAY_NAME : undefined

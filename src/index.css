@@ -66,3 +66,94 @@
   margin-right: 0.5em;
   vertical-align: middle;
 }
+
+/* Certificate install form.
+   Deliberately plain: it is a recovery affordance, not a primary flow, and
+   dressing it up would suggest it is a routine step rather than a repair. */
+.certificate-box {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border, #ddd);
+}
+
+.certificate-box h4 {
+  margin: 0 0 0.35rem;
+}
+
+.certificate-box label {
+  display: block;
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.certificate-box label input {
+  display: block;
+  width: 100%;
+  margin-top: 0.2rem;
+  padding: 0.35rem 0.45rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+  box-sizing: border-box;
+}
+
+.certificate-box input[type="file"] {
+  margin-top: 0.4rem;
+  font-size: 0.85rem;
+}
+
+.certificate-box .hint {
+  margin: 0.4rem 0;
+  font-size: 0.82rem;
+  opacity: 0.75;
+}
+
+.certificate-box .warning {
+  margin: 0.5rem 0 0;
+  padding: 0.45rem 0.55rem;
+  font-size: 0.85rem;
+  border-left: 3px solid #c2410c;
+  background: rgba(194, 65, 12, 0.08);
+}
+
+.certificate-box .success {
+  margin: 0.5rem 0 0;
+  padding: 0.45rem 0.55rem;
+  font-size: 0.85rem;
+  border-left: 3px solid #15803d;
+  background: rgba(21, 128, 61, 0.08);
+}
+
+.certificate-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+
+.certificate-actions button {
+  padding: 0.35rem 0.7rem;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.certificate-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.certificate-actions .or {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+/* The raw upstream message, kept visible but subordinate: it is the thing to
+   quote in a bug report and the thing to ignore otherwise. */
+.certificate-box .detail {
+  display: inline-block;
+  margin-top: 0.3rem;
+  font-family: ui-monospace, monospace;
+  font-size: 0.76rem;
+  opacity: 0.75;
+}

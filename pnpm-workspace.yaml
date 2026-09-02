@@ -6,13 +6,30 @@ catalog:
   "@automerge/automerge-subduction": 0.16.1
   "@automerge/keyhive-react": 0.1.0-alpha.3
   "@automerge/react": 2.6.0-subduction.48
+  "@inkandswitch/onomancy": 0.2.0
   "@keyhive/keyhive": 0.1.0-alpha.8
 
 # Transitive copies of the WASM-backed packages, pulled in by
-# automerge-repo-keyhive.
+# automerge-repo-keyhive. Onomancy is deliberately absent here: it is a
+# distinct Wasm module rather than a second copy of one of these, so there is
+# no duplicate to collapse onto a single instance.
 overrides:
   "@automerge/automerge-repo": "catalog:"
   "@automerge/automerge-subduction": "catalog:"
+  #
+  # TEMPORARY. A link is a live view of a tree that can move without warning,
+  # so this breaks reproducibility: `pnpm install --frozen-lockfile` cannot
+  # work on a machine without the sibling checkout, which is why
+  # .github/workflows/deploy.yml and the flake's `ci` are broken.
+  #
+  # It is here because keyhive-react is being changed *for* this demo, and a
+  # published snapshot per change would cost a verification round each time.
+  # Sound only while the changes are announced. Run `pnpm check:linked` before
+  # trusting any result against it: a link stays live-looking while the built
+  # artifact drifts behind the source.
+  #
+  # Revert to `catalog:` once a version is published.
+  "@automerge/keyhive-react": "link:../keyhive-react"
 
 onlyBuiltDependencies:
   - esbuild
