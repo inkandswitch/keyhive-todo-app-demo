@@ -57,7 +57,7 @@ export function identifierHex(): string | undefined {
   if (identifierHexCache === undefined) {
     const card = ContactCard.fromJson(CONTACT_CARD_JSON);
     if (card) {
-      identifierHexCache = uint8ArrayToHex(card.individualId.bytes);
+      identifierHexCache = uint8ArrayToHex(card.individualId.toBytes());
     }
   }
   return identifierHexCache;
