@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import type {
   AutomergeRepoKeyhive,
-  Group,
+  GroupId,
 } from "@automerge/automerge-repo-keyhive";
 import {
   Avatar,
@@ -29,30 +29,30 @@ interface GroupsPanelProps {
  * Group management panel.
  */
 export function GroupsPanel({ hive, keyhiveVersion }: GroupsPanelProps) {
-  const [groups, setGroups] = useState<Group[]>([]);
-  const [openGroup, setOpenGroup] = useState<Group | null>(null);
+  const [groups, setGroups] = useState<GroupId[]>([]);
+  const [openGroup, setOpenGroup] = useState<GroupId | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { menu, open: openMenu, close: closeMenu } = useContextMenu();
 
   const createGroup = useCallback(async () => {
     setError(null);
     try {
-      const group = await hive.generateGroup();
-      setGroups((previous) => [...previous, group]);
-      setOpenGroup(group);
+      const groupId = await hive.generateGroup();
+      setGroups((previous) => [...previous, groupId]);
+      setOpenGroup(groupId);
     } catch (err) {
       setError(`Could not create a group: ${errorMessage(err)}`);
     }
   }, [hive]);
 
   // Only drops the group from this list. Nobody loses access.
-  const removeGroup = useCallback((toRemove: Group) => {
-    const id = bytesToHex(toRemove.id.toBytes());
+  const removeGroup = useCallback((toRemove: GroupId) => {
+    const id = bytesToHex(toRemove.toBytes());
     setGroups((previous) =>
-      previous.filter((group) => bytesToHex(group.id.toBytes()) !== id)
+      previous.filter((group) => bytesToHex(group.toBytes()) !== id)
     );
     setOpenGroup((open) =>
-      open && bytesToHex(open.id.toBytes()) === id ? null : open
+      open && bytesToHex(open.toBytes()) === id ? null : open
     );
   }, []);
 
@@ -82,7 +82,7 @@ export function GroupsPanel({ hive, keyhiveVersion }: GroupsPanelProps) {
         <ul className="space-y-1">
           {groups.map((group) => (
             <GroupRow
-              key={bytesToHex(group.id.toBytes())}
+              key={bytesToHex(group.toBytes())}
               group={group}
               onOpen={() => setOpenGroup(group)}
               onContextMenu={(e) =>
@@ -117,11 +117,11 @@ function GroupRow({
   onOpen,
   onContextMenu,
 }: {
-  group: Group;
+  group: GroupId;
   onOpen: () => void;
   onContextMenu: (event: React.MouseEvent) => void;
 }) {
-  const id = bytesToHex(group.id.toBytes());
+  const id = bytesToHex(group.toBytes());
   const entry = useDirectoryEntry(id);
 
   return (
@@ -151,7 +151,7 @@ function GroupModal({
   keyhiveVersion,
   onClose,
 }: {
-  group: Group;
+  group: GroupId;
   hive: AutomergeRepoKeyhive;
   keyhiveVersion: number;
   onClose: () => void;
@@ -165,7 +165,7 @@ function GroupModal({
   return (
     <Modal isOpen onClose={onClose} title="Group">
       <ProfileEditor
-        id={bytesToHex(group.id.toBytes())}
+        id={bytesToHex(group.toBytes())}
         kind="group"
         nameLabel="Group name"
         namePlaceholder="Name this group"
